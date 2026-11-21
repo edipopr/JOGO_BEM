@@ -13,6 +13,7 @@ import { configurarApp } from './pwa.js';
 import { VERSAO } from './versao.js';
 import { som } from './audio.js';
 import { estatisticas } from './estatisticas.js';
+import { contagem } from './contagem.js';
 import { Chefao } from './chefao.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
@@ -90,6 +91,10 @@ function registrarFim(resultado) {
   estatisticas.terminou(resultado, {
     heroi: jogador.id, tempo: partida.tempo, pontos: pontosTotais(),
     tempoNovo: partida.tempo - registrado.tempo, inimigosNovos: inimigos.derrotados - registrado.inimigos,
+  });
+  contagem.terminou(resultado, {
+    heroi: jogador.id, segundos: partida.tempo, segundosNovos: partida.tempo - registrado.tempo,
+    pontos: pontosTotais(), cristais: partida.cristais, estrelas: partida.estrelas,
   });
   registrado.tempo = partida.tempo;
   registrado.inimigos = inimigos.derrotados;
@@ -193,8 +198,10 @@ function comecarPartida(voltarAoInicio) {
     registrado.inimigos = 0;
     tempoAbrirPortal = 0;
     estatisticas.comecou(jogador.id);
+    contagem.comecou();
   } else {
     estatisticas.tentouDeNovo();
+    contagem.tentouDeNovo();
     chefao.reiniciarLuta(); // chefão volta a dormir com vida cheia (se ainda não foi derrotado)
   }
   portal.abrir(chefao.derrotado);
@@ -331,7 +338,7 @@ window.addEventListener('resize', () => {
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console
-window.guizinhoDebug = { jogador, inimigos, chefao, portal, fase, som, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
+window.guizinhoDebug = { jogador, inimigos, chefao, portal, fase, som, contagem, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
 
 // ----- Loop principal -----
 const relogio = new THREE.Clock();

@@ -51,6 +51,8 @@ src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = cai
 src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
 src/chefao.js         chefão Guardião da Floresta (ciclo golpe/investida/bolas → cansado; entra no GerenciadorInimigos via inimigos.adicionar)
 src/estatisticas.js   painel do jogo: partidas/vitórias/derrotas/recordes salvos no aparelho (localStorage)
+src/contagem.js       contagem ONLINE anônima (Firebase REST); endereço do banco em src/config-online.js (vazio = desligada)
+painel.html           painel online (aparelhos, partidas por dia, heróis...); ?demo=1 = dados de exemplo; ver docs/CONTAGEM_ONLINE.md
 src/projeteis.js      tiros do jogador (explodem em área) e dos inimigos
 src/itens.js          cristais, corações, estrelas, checkpoints e portal de saída
 src/particulas.js     efeitos de partículas

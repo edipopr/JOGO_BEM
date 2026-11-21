@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Painel Guizinho</title>
+  <link rel="icon" type="image/png" href="icones/icone-192.png">
+  <style>
+    :root {
+      --fundo: #f4f6f8; --cartao: #ffffff; --texto: #1d2733; --texto2: #5b6875; --linha: #e3e8ee;
+      --barra: #2f7ae5; --barra2: #24a36b; --destaque: #ff8a1f; --ok: #1e8a4c; --nao: #c2410c;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fundo: #11171e; --cartao: #1a222c; --texto: #e8edf2; --texto2: #9aa8b6; --linha: #2a3542;
+        --barra: #5b9cf0; --barra2: #3cc184; --destaque: #ffa04d; --ok: #4ade80; --nao: #fb923c;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body { background: var(--fundo); color: var(--texto); font: 15px/1.4 "Segoe UI", system-ui, sans-serif; padding: 16px; }
+    main { max-width: 1040px; margin: 0 auto; display: grid; gap: 14px; }
+    header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
+    h1 { font-size: 22px; }
+    h1 span { color: var(--destaque); }
+    h2 { font-size: 15px; margin-bottom: 10px; }
+    .sub { color: var(--texto2); font-size: 13px; }
+    button { font: inherit; padding: 7px 16px; border-radius: 18px; border: 1px solid var(--linha); background: var(--cartao); color: var(--texto); cursor: pointer; }
+    .cartao { background: var(--cartao); border: 1px solid var(--linha); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+    .numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 45%), 1fr)); gap: 10px; }
+    .numeros .cartao b { display: block; font-size: 28px; line-height: 1.1; }
+    .numeros .cartao span { color: var(--texto2); font-size: 13px; }
+    .numeros .cartao small { display: block; color: var(--texto2); font-size: 12px; margin-top: 2px; }
+    .duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px; }
+    main > * { min-width: 0; }
+    body.sem-dados .dados { display: none; }
+    /* Gráfico de colunas por dia */
+    .colunas { display: flex; align-items: flex-end; gap: 4px; height: 150px; border-bottom: 1px solid var(--linha); position: relative; }
+    .colunas .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; cursor: default; }
+    .colunas .col i { display: block; width: 100%; max-width: 26px; background: var(--cor, var(--barra)); border-radius: 4px 4px 0 0; min-height: 0; }
+    .colunas .col:hover i { filter: brightness(1.15); }
+    .colunas .col em { font-style: normal; font-size: 11px; color: var(--texto2); margin-bottom: 2px; }
+    .eixo { display: flex; gap: 4px; font-size: 10px; color: var(--texto2); margin-top: 4px; }
+    .eixo span { flex: 1; text-align: center; overflow: hidden; white-space: nowrap; }
+    /* Barras horizontais */
+    .linha-barra { display: grid; grid-template-columns: 130px 1fr 44px; gap: 8px; align-items: center; margin: 6px 0; font-size: 14px; }
+    .linha-barra .trilho { height: 12px; background: var(--linha); border-radius: 6px; overflow: hidden; }
+    .linha-barra .trilho i { display: block; height: 100%; background: var(--barra); border-radius: 0 4px 4px 0; }
+    .linha-barra b { text-align: right; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--linha); white-space: nowrap; }
+    th { color: var(--texto2); font-weight: 600; }
+    .tabela { overflow-x: auto; }
+    .ok { color: var(--ok); font-weight: 600; } .nao { color: var(--nao); font-weight: 600; }
+    #dica { position: fixed; pointer-events: none; background: var(--texto); color: var(--fundo); padding: 5px 9px; border-radius: 8px; font-size: 12px; display: none; z-index: 9; white-space: nowrap; }
+    #aviso { display: none; }
+    #aviso.mostrar { display: block; }
+    #aviso code { background: var(--linha); padding: 1px 5px; border-radius: 4px; }
+    details summary { cursor: pointer; color: var(--texto2); font-size: 13px; }
+    @media (max-width: 520px) { .linha-barra { grid-template-columns: 100px 1fr 36px; } .numeros .cartao b { font-size: 24px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>📊 Painel online do <span>Guizinho</span></h1>
+      <div class="sub" id="atualizado">Carregando…</div>
+    </div>
+    <button id="btn-atualizar">↻ Atualizar</button>
+  </header>
+
+  <div id="aviso" class="cartao">
+    <h2>Contagem online ainda não ligada</h2>
+    <p>Crie o banco gratuito no Firebase e coloque o endereço em <code>src/config-online.js</code>
+      (passo a passo em <code>docs/CONTAGEM_ONLINE.md</code>). Para ver um exemplo com dados de mentira: <a href="?demo=1">painel.html?demo=1</a></p>
+  </div>
+
+  <section class="numeros dados" id="numeros"></section>
+
+  <div class="duas dados">
+    <section class="cartao">
+      <h2>Aparelhos que jogaram por dia <span class="sub">(últimos 14 dias)</span></h2>
+      <div class="colunas" id="graf-aparelhos"></div>
+      <div class="eixo" id="eixo-aparelhos"></div>
+    </section>
+    <section class="cartao">
+      <h2>Partidas iniciadas por dia <span class="sub">(últimos 14 dias)</span></h2>
+      <div class="colunas" id="graf-partidas" style="--cor: var(--barra2)"></div>
+      <div class="eixo" id="eixo-partidas"></div>
+    </section>
+  </div>
+
+  <div class="duas dados">
+    <section class="cartao">
+      <h2>Heróis escolhidos <span class="sub">(partidas terminadas)</span></h2>
+      <div id="herois"></div>
+    </section>
+    <section class="cartao">
+      <h2>Quantas vezes cada aparelho jogou</h2>
+      <div id="fidelidade"></div>
+    </section>
+  </div>
+
+  <section class="cartao dados">
+    <h2>Últimas partidas</h2>
+    <div class="tabela"><table id="ultimas"></table></div>
+  </section>
+
+  <section class="cartao dados">
+    <details>
+      <summary>Tabela dos últimos 14 dias</summary>
+      <div class="tabela"><table id="tabela-dias"></table></div>
+    </details>
+  </section>
+  <p class="sub">Contagem anônima: cada aparelho tem um código aleatório; nenhum dado pessoal é guardado.</p>
+</main>
+<div id="dica"></div>
+
+<script type="module">
+import { URL_BANCO } from './src/config-online.js';
+
+const NOMES = { guizinho: 'Guizinho', tvRambon: 'TV Rambon', experimentoCaixa: 'Experimento Caixa', funBot: 'Mr. Fun BOT' };
+const $ = (id) => document.getElementById(id);
+const demo = new URLSearchParams(location.search).has('demo');
+
+const diaTexto = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const ultimosDias = (n) => Array.from({ length: n }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (n - 1 - i)); return diaTexto(d); });
+const duracao = (s) => {
+  s = Math.round(s || 0);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return h ? `${h}h ${String(m).padStart(2, '0')}min` : `${m}min ${String(s % 60).padStart(2, '0')}s`;
+};
+const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+const quando = (t) => {
+  const d = new Date(t);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
+// ---------- Dados ----------
+async function buscar(caminho) {
+  const r = await fetch(`${URL_BANCO.replace(/\/$/, '')}/${caminho}`, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`O banco respondeu ${r.status} (${caminho})`);
+  return (await r.json()) || {};
+}
+
+function dadosDemo() {
+  const dias = {}, aparelhos = {}, partidas = {};
+  const ids = Array.from({ length: 23 }, (_, i) => `demo-${i}`);
+  const herois = Object.keys(NOMES);
+  let n = 0;
+  ultimosDias(14).forEach((dia, k) => {
+    dias[dia] = {};
+    for (const id of ids) {
+      if (Math.random() > 0.15 + k * 0.03) continue;
+      const vezes = 1 + Math.floor(Math.random() * 4);
+      dias[dia][id] = vezes;
+      const a = aparelhos[id] ||= { partidas: 0, vitorias: 0, derrotas: 0, segundos: 0, tentativas: 0, plataforma: Math.random() < 0.7 ? 'celular' : 'computador', instalado: Math.random() < 0.3, primeiraVez: Date.parse(dia) };
+      a.partidas += vezes;
+      for (let v = 0; v < vezes; v++) {
+        const venceu = Math.random() < 0.45;
+        a[venceu ? 'vitorias' : 'derrotas']++;
+        const s = 60 + Math.random() * 400;
+        a.segundos += s;
+        partidas[`p${String(n++).padStart(5, '0')}`] = { aparelho: id, heroi: herois[Math.floor(Math.random() * 4)], resultado: venceu ? 'vitoria' : 'derrota', segundos: s, pontos: Math.floor(Math.random() * 900), data: Date.parse(dia) + v * 3600e3 };
+      }
+    }
+  });
+  return { aparelhos, dias, partidas };
+}
+
+async function carregar() {
+  if (demo) return dadosDemo();
+  const [aparelhos, dias, partidas] = await Promise.all([
+    buscar('aparelhos.json'), buscar('dias.json'),
+    buscar('partidas.json?orderBy=%22$key%22&limitToLast=1000'),
+  ]);
+  return { aparelhos, dias, partidas };
+}
+
+// ---------- Desenho ----------
+function colunas(alvo, eixo, dias, valores, rotulo) {
+  const maior = Math.max(1, ...valores);
+  $(alvo).innerHTML = valores.map((v, i) =>
+    `<div class="col" data-dica="${dias[i].split('-').reverse().slice(0, 2).join('/')}: ${v} ${rotulo}">`
+    + `${v ? `<em>${v}</em>` : ''}<i style="height:${(v / maior) * 85}%"></i></div>`).join('');
+  $(eixo).innerHTML = dias.map((d, i) => `<span>${i % 2 === 0 || dias.length < 8 ? d.slice(8) + '/' + d.slice(5, 7) : ''}</span>`).join('');
+}
+
+function barras(alvo, linhas) {
+  const maior = Math.max(1, ...linhas.map((l) => l[1]));
+  $(alvo).innerHTML = linhas.map(([nome, v, extra = '']) =>
+    `<div class="linha-barra" data-dica="${nome}: ${v}${extra}"><span>${nome}</span>`
+    + `<div class="trilho"><i style="width:${(v / maior) * 100}%"></i></div><b>${v}</b></div>`).join('');
+}
+
+function desenhar({ aparelhos, dias, partidas }) {
+  const lista = Object.values(aparelhos);
+  const soma = (campo) => lista.reduce((t, a) => t + (Number(a[campo]) || 0), 0);
+  const iniciadas = soma('partidas'), vitorias = soma('vitorias'), derrotas = soma('derrotas');
+  const hoje = diaTexto(new Date());
+  const diasPorAparelho = {};
+  for (const porId of Object.values(dias)) for (const id of Object.keys(porId)) diasPorAparelho[id] = (diasPorAparelho[id] || 0) + 1;
+  const voltaram = Object.values(diasPorAparelho).filter((n) => n >= 2).length;
+  const ativosHoje = Object.keys(dias[hoje] || {}).length;
+  const celular = lista.filter((a) => a.plataforma === 'celular').length;
+  const instalados = lista.filter((a) => a.instalado).length;
+
+  const numeros = [
+    [lista.length, 'Aparelhos que jogaram', `${celular} celular/tablet · ${lista.length - celular} computador`],
+    [iniciadas, 'Partidas iniciadas', `média ${(iniciadas / Math.max(1, lista.length)).toFixed(1)} por aparelho`],
+    [vitorias, 'Vitórias', `${pct(vitorias, vitorias + derrotas)}% das partidas terminadas`],
+    [derrotas, 'Derrotas', `${soma('tentativas')} vezes "Tentar de novo"`],
+    [voltaram, 'Voltaram para jogar', `${pct(voltaram, lista.length)}% jogaram em 2 dias ou mais`],
+    [ativosHoje, 'Jogaram hoje', `${(Object.values(dias[hoje] || {})).reduce((t, n) => t + n, 0)} partidas hoje`],
+    [duracao(soma('segundos')), 'Tempo total jogado', `média ${duracao(soma('segundos') / Math.max(1, vitorias + derrotas))} por partida`],
+    [instalados, 'Instalaram o app', `${pct(instalados, lista.length)}% dos aparelhos`],
+  ];
+  $('numeros').innerHTML = numeros.map(([n, rotulo, extra]) =>
+    `<div class="cartao"><b>${n}</b><span>${rotulo}</span><small>${extra}</small></div>`).join('');
+
+  const d14 = ultimosDias(14);
+  const ativos = d14.map((d) => Object.keys(dias[d] || {}).length);
+  const porDia = d14.map((d) => Object.values(dias[d] || {}).reduce((t, n) => t + n, 0));
+  colunas('graf-aparelhos', 'eixo-aparelhos', d14, ativos, 'aparelhos');
+  colunas('graf-partidas', 'eixo-partidas', d14, porDia, 'partidas');
+  $('tabela-dias').innerHTML = '<tr><th>Dia</th><th>Aparelhos</th><th>Partidas</th></tr>'
+    + d14.map((d, i) => `<tr><td>${d.split('-').reverse().join('/')}</td><td>${ativos[i]}</td><td>${porDia[i]}</td></tr>`).reverse().join('');
+
+  const lp = Object.values(partidas).sort((a, b) => b.data - a.data);
+  const contHeroi = {};
+  for (const p of lp) contHeroi[p.heroi] = (contHeroi[p.heroi] || 0) + 1;
+  barras('herois', Object.entries(NOMES).map(([id, nome]) => [nome, contHeroi[id] || 0, ` partidas (${pct(contHeroi[id] || 0, lp.length)}%)`]));
+
+  const faixas = [['1 partida', 0], ['2 a 4', 0], ['5 a 9', 0], ['10 ou mais', 0]];
+  for (const a of lista) {
+    const n = Number(a.partidas) || 0;
+    faixas[n >= 10 ? 3 : n >= 5 ? 2 : n >= 2 ? 1 : 0][1]++;
+  }
+  barras('fidelidade', faixas.map(([nome, v]) => [nome, v, ' aparelhos']));
+
+  $('ultimas').innerHTML = '<tr><th>Quando</th><th>Aparelho</th><th>Herói</th><th>Resultado</th><th>Tempo</th><th>Pontos</th></tr>'
+    + (lp.slice(0, 20).map((p) => `<tr><td>${quando(p.data)}</td><td>${String(p.aparelho).slice(0, 6)}</td>`
+      + `<td>${NOMES[p.heroi] || p.heroi}</td><td class="${p.resultado === 'vitoria' ? 'ok' : 'nao'}">${p.resultado === 'vitoria' ? '✔ Vitória' : '✖ Derrota'}</td>`
+      + `<td>${duracao(p.segundos)}</td><td>${p.pontos ?? ''}</td></tr>`).join('')
+      || '<tr><td colspan="6">Nenhuma partida terminada ainda.</td></tr>');
+}
+
+async function atualizar() {
+  if (!URL_BANCO && !demo) {
+    $('aviso').classList.add('mostrar');
+    document.body.classList.add('sem-dados');
+    $('atualizado').textContent = 'Sem banco configurado.';
+    return;
+  }
+  $('atualizado').textContent = 'Carregando…';
+  try {
+    desenhar(await carregar());
+    $('atualizado').textContent = `${demo ? 'DADOS DE EXEMPLO · ' : ''}Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+  } catch (erro) {
+    $('atualizado').textContent = `Não consegui ler o banco: ${erro.message}`;
+  }
+}
+
+// Dica ao passar o mouse/dedo
+document.addEventListener('pointermove', (e) => {
+  const alvo = e.target.closest('[data-dica]');
+  const dica = $('dica');
+  if (!alvo) { dica.style.display = 'none'; return; }
+  dica.textContent = alvo.dataset.dica;
+  dica.style.display = 'block';
+  dica.style.left = `${Math.min(e.clientX + 12, innerWidth - dica.offsetWidth - 8)}px`;
+  dica.style.top = `${e.clientY - 34}px`;
+});
+$('btn-atualizar').addEventListener('click', atualizar);
+atualizar();
+setInterval(atualizar, 60000);
+</script>
+</body>
+</html>
