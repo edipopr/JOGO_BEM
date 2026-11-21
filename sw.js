@@ -1,7 +1,7 @@
 // Service worker: guarda o jogo no aparelho para funcionar offline e busca atualizações.
 // VERSAO: trocar antes de cada commit com  sh ferramentas/nova_versao.sh
 // Ao criar um arquivo novo em src/, adicione-o em ARQUIVOS.
-const VERSAO = 'guizinho-2026-11-21-203528';
+const VERSAO = 'guizinho-2026-11-21-204445';
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 const ARQUIVOS = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',

@@ -8,7 +8,7 @@
   - Dificuldade do chefão (9 de vida, 3 golpes por cansaço; ajustar VIDA/DANO_POR_CANSACO/TEMPO_VULNERAVEL em `src/chefao.js`)
   - Se a mira automática e as áreas maiores deixaram os heróis fáceis de acertar (ajustar `ATAQUES` em `src/jogador.js`)
   - Se o botão "Jogar de novo" aparece no celular deitado
-  - **Contagem online:** usuário precisa criar o banco no Firebase (docs/CONTAGEM_ONLINE.md) e mandar o endereço para colocar em `src/config-online.js`
+  - **Contagem online LIGADA** (banco guizinho-3685f, Firebase). Painel: https://edipopr.github.io/JOGO_BEM/painel.html. Há 1 aparelho de teste "teste-claude" que o usuário pode apagar no console
   - Volume/qualidade dos sons e da música (Claude não consegue ouvir)
 - **Próximo passo:** **Fase 6 — Menus e salvamento** (menu principal com Continuar, pausa com Esc, salvar progresso e configurações).
 - **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
@@ -66,7 +66,7 @@
 - [x] Mira automática (vira para o inimigo mais próximo à frente; projétil mira também na altura) e áreas de golpe maiores
 - [x] Tela de vitória/derrota cabe no celular deitado (botões visíveis; rola se faltar espaço)
 - [x] Painel do jogo (botão 📊 na tela inicial): partidas, vitórias, derrotas, tempo, recordes, partidas por herói, últimas 10 — salvo no aparelho
-- [x] Contagem online anônima (Firebase) + painel online em `painel.html` (aparelhos, partidas por dia, quem voltou a jogar, heróis, últimas partidas) — falta o usuário criar o banco
+- [x] Contagem online anônima (Firebase) + painel online em `painel.html` (aparelhos, partidas por dia, quem voltou a jogar, heróis, últimas partidas) — ligada em 2026-11-21 (projeto Firebase guizinho-3685f)
 
 ### Fase 6 — Menus, áudio e salvamento
 - [ ] Menu principal (Novo jogo, Continuar, Personagens, Configurações)
