@@ -38,22 +38,38 @@
     <button id="btn-jogar">Jogar</button>
     <button id="btn-instalar" class="secundario oculto">📲 Instalar app</button>
     <p id="dica-ios" class="dica-tela oculto">Para instalar no iPhone/iPad: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</p>
-    <p class="dica-tela">Pegue os cristais, ache as 3 estrelas escondidas e chegue ao portal!</p>
-    <p class="versao">Protótipo — Fase 3</p>
+    <p class="dica-tela">Atravesse a Floresta dos Amigos, pegue os cristais, ache as 3 estrelas escondidas e chegue ao portal!</p>
+    <p class="versao">Protótipo — Fase 4 · 4 heróis</p>
+  </div>
+
+  <div id="tela-selecao" class="tela tela-selecao oculto">
+    <h3>Escolha seu herói</h3>
+    <p id="descricao-personagem" class="descricao-personagem"></p>
+    <div id="cartoes" class="cartoes"></div>
+    <div class="botoes">
+      <button id="btn-voltar" class="secundario">Voltar</button>
+      <button id="btn-comecar">Começar!</button>
+    </div>
   </div>
 
   <div id="tela-vitoria" class="tela oculto">
     <h1>Vitória!</h1>
     <ul id="objetivos" class="objetivos"></ul>
     <div id="resumo" class="resumo"></div>
-    <button id="btn-de-novo">Jogar de novo</button>
+    <div class="botoes">
+      <button id="btn-trocar-vitoria" class="secundario">Trocar herói</button>
+      <button id="btn-de-novo">Jogar de novo</button>
+    </div>
   </div>
 
   <div id="tela-derrota" class="tela tela-derrota oculto">
     <h1>Que pena!</h1>
-    <h2>As gosmas venceram desta vez...</h2>
+    <h2>Os contaminados venceram desta vez...</h2>
     <button id="btn-tentar">Tentar de novo</button>
-    <button id="btn-recomecar" class="secundario">Recomeçar a fase</button>
+    <div class="botoes">
+      <button id="btn-trocar-derrota" class="secundario">Trocar herói</button>
+      <button id="btn-recomecar" class="secundario">Recomeçar a fase</button>
+    </div>
   </div>
 
   <div id="controles-toque" class="oculto">
@@ -61,6 +77,8 @@
     <button id="btn-atacar" class="btn-toque">Atacar</button>
     <button id="btn-pular" class="btn-toque">Pular</button>
   </div>
+
+  <pre id="erro" class="oculto"></pre>
 
   <script type="module" src="src/main.js"></script>
 </body>

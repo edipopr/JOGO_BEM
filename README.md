@@ -10,7 +10,7 @@ Dê dois cliques em `iniciar.bat` — o jogo abre em http://localhost:8080
 
 **No celular/tablet (mesma rede Wi-Fi):** rode uma vez `liberar_celular.bat` (pede permissão de administrador) e depois abra no celular o endereço amarelo que aparece na janela do `iniciar.bat`.
 
-**Controles (PC):** WASD/setas mover · Espaço pular · J atacar · Shift correr · arraste o mouse para girar a câmera
+**Controles (PC):** WASD/setas mover · Espaço pular · J atacar · Shift correr (4 heróis para escolher, cada um com seu ataque) · arraste o mouse para girar a câmera
 **Controles (toque):** joystick à esquerda · botões Atacar e Pular · arraste a tela para girar a câmera
 
 ## Documentos

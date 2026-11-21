@@ -2,9 +2,9 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 3 concluída + web app instalável (aguardando teste do usuário)
+- **Fase atual:** Fase 4 concluída + escolha de personagem (parte da Fase 8, adiantada a pedido do usuário)
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/
-- **Próximo passo:** testar a Fase 3 e a instalação no celular; depois iniciar a **Fase 4 — Floresta dos Amigos** (fase completa com layout próprio, 3 tipos de inimigos, plataformas móveis).
+- **Próximo passo:** usuário testar os 4 heróis e a Floresta; depois iniciar a **Fase 5 — Chefão Guardião da Floresta** (substitui o portal da arena: derrotar o chefão abre o portal).
 
 ## Fases
 
@@ -37,11 +37,14 @@
 - [x] Tela de derrota: "Tentar de novo" (último checkpoint) ou "Recomeçar a fase"
 - [x] Gosma derrotada vale 50 pts
 
-### Fase 4 — Floresta dos Amigos (fase 1 completa)
-- [ ] Layout da fase (caminho, áreas, segredos)
-- [ ] Três tipos de inimigos
-- [ ] Plataformas móveis e obstáculos
-- [ ] Missão e caminho até o chefão
+### Fase 4 — Floresta dos Amigos (fase 1 completa) ✅
+- [x] Layout (sentido -Z): Clareira → Trilha dos Cogumelos → Planalto (y 6) → Plataformas móveis → Bosque Escuro → Subida → Arena do Guardião (y 12)
+- [x] Três tipos de inimigos: gosma (persegue, 2 vida), saltitante (pula em você, 1 vida), cuspidor (cogumelo parado que atira, 3 vida)
+- [x] 3 plataformas móveis (carregam o jogador), cogumelos-trampolim, pedras
+- [x] 27 cristais, 3 estrelas escondidas (clareira, nuvem do trampolim secreto, canto do bosque), 3 corações, 3 checkpoints
+- [x] Avisos de tutorial que aparecem uma vez ao passar perto
+- [x] Arena com pilares e portal de saída (chefão vem na Fase 5)
+- [x] Construtor de fases reutilizável (`src/fases/construtor.js`)
 
 ### Fase 5 — Chefão: Guardião da Floresta
 - [ ] Ataques: golpe no chão, investida, bolas de energia
@@ -60,9 +63,11 @@
 - [ ] Testes em navegadores, celular e tablet
 
 ### Fase 8 — Personagens
-- [ ] TV Rambon, Experimento Caixa, Mr. Fun BOT
-- [ ] Habilidades especiais (tecla K)
-- [ ] Tela de seleção de personagem
+- [x] (adiantado) TV Rambon, Experimento Caixa, Mr. Fun BOT jogáveis, com atributos do GDD (velocidade/força/pulo)
+- [x] (adiantado) Ataque próprio de cada um: soco (Guizinho), explosão de luz em área (TV), raio de longo alcance (Caixa), projétil explosivo (BOT)
+- [x] (adiantado) Tela de seleção com cartões, barras de atributos e o herói em 3D; escolha salva no aparelho; "Trocar herói" na vitória/derrota
+- [ ] Habilidades especiais (tecla K): dash de energia, onda de cores, campo tecnológico, tiro de canhão
+- [ ] Modelos e animações mais caprichados
 
 ### Fase 9 — Demais fases e vilões
 - [ ] Planeta Guizinho, Laboratório Perdido, Circo do Ioro, Floresta do Pesadelo, Castelo
@@ -78,3 +83,4 @@
 - **2026-11-21:** Servidor reescrito para aceitar a rede local (celular); GitHub Pages pendente (repo privado).
 - **2026-11-21:** Repositório tornado público e GitHub Pages ativado.
 - **2026-11-21:** Web app instalável (PWA) e Fase 3 implementada (itens, checkpoints, portal, telas de vitória/derrota).
+- **2026-11-21:** Fase 4 (Floresta dos Amigos, 3 tipos de inimigos, plataformas móveis, trampolins) + 4 heróis jogáveis com tela de seleção. Testes automáticos com Chrome headless (ferramentas/teste.html).

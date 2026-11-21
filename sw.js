@@ -1,12 +1,13 @@
 // Service worker: guarda o jogo no aparelho para funcionar offline.
 // IMPORTANTE: ao criar um arquivo novo em src/, adicione-o em ARQUIVOS e aumente a VERSAO.
-const VERSAO = 'guizinho-v3';
+const VERSAO = 'guizinho-v4';
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 const ARQUIVOS = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'icones/icone-192.png', 'icones/icone-512.png', 'icones/apple-touch-icon.png',
   'src/main.js', 'src/pwa.js', 'src/entrada.js', 'src/camera.js', 'src/jogador.js',
-  'src/fisica.js', 'src/inimigo.js', 'src/particulas.js', 'src/fase.js', 'src/itens.js',
+  'src/fisica.js', 'src/inimigo.js', 'src/particulas.js', 'src/itens.js', 'src/personagens.js',
+  'src/projeteis.js', 'src/fases/construtor.js', 'src/fases/floresta.js',
   THREE_URL,
 ];
 

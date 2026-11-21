@@ -51,6 +51,44 @@ html, body {
 .tela-derrota { background: radial-gradient(circle at 50% 40%, rgba(110, 40, 170, .6), rgba(20, 5, 35, .9)); }
 .tela-derrota h1 { color: #c6ff3d; text-shadow: 0 6px 0 #5a1d9e, 0 10px 20px rgba(0,0,0,.5); }
 
+.botoes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; }
+
+/* ---------- Seleção de personagem ---------- */
+.tela-selecao {
+  justify-content: flex-end; gap: 8px; padding-bottom: 16px;
+  background: linear-gradient(rgba(10,30,40,0) 25%, rgba(10,30,40,.88) 55%);
+}
+.tela-selecao h3 { font-size: clamp(22px, 5vw, 32px); color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8; }
+.descricao-personagem { font-size: 16px; min-height: 1.2em; }
+.cartoes {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 170px)); gap: 10px;
+  width: 100%; justify-content: center;
+}
+@media (max-width: 640px) { .cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tela .cartao {
+  font: inherit; color: #fff; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 12px; border-radius: 14px;
+  background: rgba(0,0,0,.45); border: 3px solid transparent;
+  border-top: 6px solid var(--cor);
+  transition: transform .1s, border-color .1s;
+  box-shadow: none; font-size: 15px; font-weight: normal;
+}
+.tela .cartao:hover { transform: translateY(-3px); }
+.tela .cartao.escolhido { border-color: var(--cor); background: rgba(0,0,0,.65); transform: translateY(-4px); }
+.cartao strong { font-size: 17px; }
+.cartao small { opacity: .8; font-size: 13px; margin-bottom: 2px; }
+.cartao em { font-size: 13px; color: #ffd84a; font-style: normal; margin-top: 2px; }
+.atributo { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 6px; font-size: 12px; }
+.barra { height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
+.barra i { display: block; height: 100%; background: var(--cor); border-radius: 4px; }
+@media (max-height: 480px) {
+  .tela-selecao { gap: 4px; padding-bottom: 8px; }
+  .descricao-personagem, .tela-selecao h3 { display: none; }
+  .tela .cartao { padding: 6px 10px; gap: 1px; }
+  .tela button { font-size: 20px; padding: 8px 28px; }
+}
+
 .objetivos { list-style: none; text-align: left; font-size: clamp(16px, 4vw, 22px); }
 .objetivos li { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
 .objetivos .estrela-meta { font-size: 1.8em; color: #ffd84a; text-shadow: 0 3px 0 #b37b00; }
@@ -87,9 +125,9 @@ html, body {
 .pulsar { animation: pulsar .35s ease-out; }
 @keyframes pulsar { 50% { transform: scale(1.35); } }
 #mensagem {
-  position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+  position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
   max-width: calc(100% - 32px); text-align: center;
-  font-size: clamp(22px, 5vw, 40px); font-weight: bold;
+  font-size: clamp(18px, 3.6vw, 32px); font-weight: bold;
   color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8, 0 6px 12px rgba(0,0,0,.5);
 }
 #dica {
@@ -121,3 +159,10 @@ html, body {
 .btn-toque:active { transform: translateY(3px); }
 #btn-pular { right: 24px; bottom: 32px; background: rgba(60, 170, 255, .85); }
 #btn-atacar { right: 134px; bottom: 80px; background: rgba(255, 138, 31, .9); }
+
+/* Erros (para relatar problemas) */
+#erro {
+  position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 99;
+  background: rgba(120, 0, 0, .85); color: #fff; padding: 8px 12px; border-radius: 8px;
+  font: 12px/1.4 monospace; white-space: pre-wrap; pointer-events: none;
+}

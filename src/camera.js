@@ -7,6 +7,7 @@ export class CameraSeguidora {
     this.angulo = 0;        // giro horizontal (rad); 0 = câmera atrás em +Z
     this.inclinacao = 0.45; // giro vertical (rad)
     this.distancia = 9;
+    this.alturaAlvo = 1.3;  // altura do ponto para onde a câmera olha (acima dos pés)
     this.alvo = new THREE.Vector3();
     this._desejada = new THREE.Vector3();
   }
@@ -23,7 +24,7 @@ export class CameraSeguidora {
   }
 
   atualizar(posJogador, dt, instantaneo = false) {
-    const alvoDesejado = this._desejada.set(posJogador.x, posJogador.y + 1.3, posJogador.z);
+    const alvoDesejado = this._desejada.set(posJogador.x, posJogador.y + this.alturaAlvo, posJogador.z);
     const k = instantaneo ? 1 : 1 - Math.exp(-10 * dt);
     this.alvo.lerp(alvoDesejado, k);
 

@@ -21,25 +21,38 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 - **GitHub Pages:** https://edipopr.github.io/JOGO_BEM/ (repositório público desde 2026-11-21; atualiza sozinho a cada push na main).
 - A máquina **não tem Node nem Python** instalados.
 
+## Como testar (Claude consegue ver o jogo)
+- Subir servidor em outra porta sem abrir navegador: `powershell -File servidor.ps1 -Porta 8099 -SemNavegador` (em background); parar depois matando o processo `powershell` com `servidor.ps1*8099` na linha de comando.
+- Capturar tela com **Chrome headless** (o Edge headless não funciona aqui):
+  `"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --no-first-run --enable-unsafe-swiftshader --user-data-dir=<scratchpad>\perfil-chrome --window-size=1000,600 --virtual-time-budget=4000 --screenshot=<scratchpad>\x.png "http://localhost:8099/ferramentas/teste.html?heroi=funBot&teleporte=0,6,-64&roteiro=%2BW,espera:1,Espaco,J,-W"`
+- `ferramentas/teste.html`: abre o jogo, escolhe herói, teleporta e executa um roteiro (W:1 = segura W 1 s; +W/-W = segura/solta; Espaco; J; espera:1) avançando o jogo manualmente via `window.guizinhoDebug.passo(dt)` (o headless quase não gera quadros sozinho). Mostra posição/vida/derrotados embaixo e erros.
+- O loop do jogo tem try/catch: erros aparecem numa faixa vermelha na tela (`#erro`).
+
 ## Estrutura
 ```
-index.html        página do jogo (importmap, HUD, telas, controles de toque)
-styles.css        estilos da interface
-src/main.js       inicialização, loop do jogo, telas
-src/entrada.js    teclado, mouse e controles de toque (joystick virtual)
-src/jogador.js    modelo do Guizinho, movimento, pulo, ataque, vida
-src/fisica.js     gravidade e colisão compartilhadas (jogador e inimigos)
-src/inimigo.js    gosmas contaminadas (IA simples) + GerenciadorInimigos (combate)
-src/particulas.js efeitos de partículas
-src/itens.js      cristais, corações, estrelas, checkpoints e portal de saída
-src/pwa.js        registra o service worker e o botão "Instalar app"
-sw.js             service worker (cache offline) — ao criar arquivo novo, adicionar em ARQUIVOS e subir VERSAO
-manifest.webmanifest  dados do app instalável; ícones em icones/ (gerados por ferramentas/gerar_icones.ps1)
-src/camera.js     câmera em terceira pessoa
-src/fase.js       cenário de teste (chão, plataformas, árvores)
-docs/PROGRESSO.md fases de desenvolvimento e onde paramos
+index.html            página (importmap, HUD, telas: inicial, seleção, vitória, derrota; controles de toque)
+styles.css            estilos da interface
+src/main.js           inicialização, estados (inicio/selecao/jogando/caindo/vitoria/derrota), loop, HUD
+src/entrada.js        teclado, mouse e toque (joystick virtual, botões Atacar/Pular)
+src/camera.js         câmera em terceira pessoa (distancia, inclinacao, alturaAlvo)
+src/personagens.js    PERSONAGENS: 4 heróis (atributos 1–5 do GDD, tipo de ataque, modelo low-poly)
+src/jogador.js        jogador com o herói escolhido: movimento, pulo, ataques (soco/onda/raio/projetil), vida
+src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
+src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
+src/projeteis.js      tiros do jogador (explodem em área) e dos inimigos
+src/itens.js          cristais, corações, estrelas, checkpoints e portal de saída
+src/particulas.js     efeitos de partículas
+src/fases/construtor.js  ConstrutorFase: ilhas, blocos, plataformas móveis, trampolins, árvores, luz
+src/fases/floresta.js    Floresta dos Amigos (layout, inimigos, itens, checkpoints, avisos, portal)
+src/pwa.js            registra o service worker e o botão "Instalar app"
+sw.js                 service worker (cache offline) — ao criar arquivo novo, adicionar em ARQUIVOS e subir VERSAO
+manifest.webmanifest  app instalável; ícones em icones/ (gerados por ferramentas/gerar_icones.ps1)
+ferramentas/          gerar_icones.ps1, teste.html
+docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 ```
 
-## Convenções de física
-- Colisão simples: jogador = cilindro (raio 0,45, altura 1,6) contra caixas alinhadas aos eixos (`THREE.Box3`) listadas em `fase.caixas`.
-- Origem do jogador nos pés; modelo olha para +Z.
+## Convenções
+- Colisão: corpo = cilindro (raio, altura) contra caixas alinhadas aos eixos (`THREE.Box3`) em `fase.caixas`. Origem nos pés; modelos olham para +Z.
+- A fase anda no sentido **-Z**; o jogador começa olhando para -Z (angulo = π) com a câmera atrás (+Z).
+- Equilíbrio: a TV Rambon (pulo 2 → ~1,7 m de altura, vel. 4,5) é o herói mais limitado; todo salto obrigatório deve ser possível com ela (degraus ≤ 1,2 m, vãos ≤ 2,5 m).
+- Novos personagens: adicionar em `PERSONAGENS` (personagens.js). Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase.

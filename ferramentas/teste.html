@@ -1,0 +1,51 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000}
+iframe{border:0;width:100%;height:100%}
+#log{position:fixed;left:0;bottom:0;right:0;background:rgba(0,0,0,.75);color:#7f7;font:13px monospace;white-space:pre-wrap;max-height:35%;overflow:hidden}
+</style></head><body>
+<iframe id="f" src="../index.html"></iframe>
+<div id="log"></div>
+<script>
+// Página de teste (abrir via servidor local). Ex.: ferramentas/teste.html?heroi=funBot&roteiro=W:2,J,W:1
+// roteiro: lista de ações; "W:2" = segura W por 2 s; "J" = aperta J; "espera:1" = espera 1 s.
+const q = new URLSearchParams(location.search);
+const f = document.getElementById('f');
+const linhas = [];
+const log = (m) => { linhas.push(m); document.getElementById('log').textContent = linhas.slice(-8).join('\n'); };
+f.addEventListener('load', () => {
+  const w = f.contentWindow, d = f.contentDocument;
+  w.addEventListener('error', (e) => log('ERRO: ' + e.message));
+  const tecla = (tipo, code) => w.dispatchEvent(new w.KeyboardEvent(tipo, { code, bubbles: true }));
+  const g = () => w.guizinhoDebug;
+  // Avança o jogo manualmente (o headless quase não gera quadros de animação)
+  const simular = (segundos) => { for (let t = 0; t < segundos; t += 1 / 30) g().passo(1 / 30); };
+  const estado = (rotulo) => {
+    const j = g().jogador, p = j.posicao;
+    log(`${rotulo}: ${g().estado} pos=(${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}) vida=${j.vida} derrotados=${g().inimigos.derrotados}`);
+  };
+  setTimeout(() => {
+    d.getElementById('btn-jogar').click();
+    if (q.get('heroi')) d.querySelector(`.cartao[data-id="${q.get('heroi')}"]`).click();
+    if (!q.get('roteiro')) return;
+    d.getElementById('btn-comecar').click();
+    if (q.get('teleporte')) {
+      const [x, y, z] = q.get('teleporte').split(',').map(Number);
+      g().jogador.posicao.set(x, y, z);
+    }
+    for (const acao of q.get('roteiro').split(',')) {
+      const [nome, seg] = acao.split(':');
+      if (nome === 'espera') simular(Number(seg));
+      else if (nome[0] === '+') tecla('keydown', 'Key' + nome.slice(1)); // segura
+      else if (nome[0] === '-') tecla('keyup', 'Key' + nome.slice(1));   // solta
+      else if (seg) { tecla('keydown', 'Key' + nome); simular(Number(seg)); tecla('keyup', 'Key' + nome); }
+      else if (nome === 'Espaco') { tecla('keydown', 'Space'); simular(0.05); tecla('keyup', 'Space'); }
+      else { tecla('keydown', 'Key' + nome); simular(0.05); tecla('keyup', 'Key' + nome); }
+      estado(acao);
+    }
+    g().passo(1 / 30, true);
+    {
+    }
+  }, 800);
+});
+</script></body></html>

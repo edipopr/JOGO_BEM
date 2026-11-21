@@ -6,7 +6,7 @@ export const GRAVIDADE = -32;
 /**
  * Move o corpo pela velocidade e resolve colisões.
  * corpo = { posicao: Vector3 (nos pés), velocidade: Vector3, raio, altura }
- * Retorna true se o corpo está apoiado no chão.
+ * Retorna true se o corpo está apoiado no chão; corpo.apoio = caixa em que pisa (ou null).
  */
 export function moverComColisao(corpo, caixas, dt) {
   const p = corpo.posicao, v = corpo.velocidade;
@@ -15,7 +15,8 @@ export function moverComColisao(corpo, caixas, dt) {
   colisaoHorizontal(p, corpo.raio, corpo.altura, caixas);
   const yAnterior = p.y;
   p.y += v.y * dt;
-  return colisaoVertical(p, v, corpo.raio, corpo.altura, caixas, yAnterior);
+  corpo.apoio = colisaoVertical(p, v, corpo.raio, corpo.altura, caixas, yAnterior);
+  return corpo.apoio !== null;
 }
 
 function colisaoHorizontal(p, raio, altura, caixas) {
@@ -46,17 +47,17 @@ function colisaoHorizontal(p, raio, altura, caixas) {
 
 function colisaoVertical(p, v, raio, altura, caixas, yAnterior) {
   const r = raio * 0.85; // um pouco menor para não "grudar" nas bordas
-  let noChao = false;
+  let apoio = null;
   for (const c of caixas) {
     if (p.x + r <= c.min.x || p.x - r >= c.max.x || p.z + r <= c.min.z || p.z - r >= c.max.z) continue;
     if (v.y <= 0 && yAnterior >= c.max.y - 0.05 && p.y <= c.max.y) {
       p.y = c.max.y;
       v.y = 0;
-      noChao = true;
+      apoio = c;
     } else if (v.y > 0 && yAnterior + altura <= c.min.y + 0.01 && p.y + altura > c.min.y) {
       p.y = c.min.y - altura;
       v.y = 0;
     }
   }
-  return noChao;
+  return apoio;
 }
