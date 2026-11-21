@@ -1,0 +1,17 @@
+# Godot
+.godot/
+.import/
+export_presets.cfg
+*.translation
+# Builds
+export/web/*
+export/desktop/*
+!export/**/.gitkeep
+# Sistema / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.claude/settings.local.json
+.env
+node_modules/

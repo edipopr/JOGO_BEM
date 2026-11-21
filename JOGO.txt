@@ -1,0 +1,16 @@
+Quero que crie um jogo para navegador web, que possa ser jogado por computador, celular ou tablet, que seja arcade e multi jogadores.
+
+O jogo começa em uma floresta em que os amigos se encontram para lutar contra os vilões que tentam infectar os amigos
+
+Os jogadores são Guizinho, TV Rambon, Experimento caixa e Mr. Fun BOT
+
+Os Vilões são Ioro, Rei do Pesadelo  experimento caixa 2
+
+Características dos jogadores:
+Guizinho (Homano verde e laranja, tem uma mascara na cara e tem cabelo)
+TV Rambon (Tem cabeça de TV é o maior de todos e tem poder colorido)
+Experimento Caixa (Ele tem uma caixa na babeça, tem um olho no formato de x vermelho e  outro olho grande)
+FunBOT (Um robô com o rosto quadrado, boa quadrada e tem canhão na mão como poder)
+
+Ioro (Segundo maior, é um palhaço, te mãos e pés gigantes e 4 braços)
+Rei do Pesadelo (É uma gosma)
