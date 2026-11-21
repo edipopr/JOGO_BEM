@@ -18,6 +18,7 @@
 - [x] Controles de toque (joystick virtual + botão pular)
 - [x] Renascer ao cair no vazio
 - [x] Servidor local (`iniciar.bat`)
+- [x] Acesso pelo celular na rede Wi-Fi (`liberar_celular.bat`)
 
 ### Fase 2 — Combate básico ✅
 - [x] Ataque (soco energético) — tecla J / botão Atacar na tela
@@ -71,3 +72,4 @@
 ## Histórico
 - **2026-11-21:** GDD lido; repositório criado; tecnologia definida (Three.js); Fase 1 implementada.
 - **2026-11-21:** Fase 2 implementada (combate, inimigos, vida, partículas; física movida para src/fisica.js).
+- **2026-11-21:** Servidor reescrito para aceitar a rede local (celular); GitHub Pages pendente (repo privado).

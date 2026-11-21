@@ -16,7 +16,9 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 - Gráficos low-poly feitos com primitivas do Three.js (sem modelos externos por enquanto). Áudio futuro via Web Audio API (sons sintetizados, sem arquivos pesados).
 
 ## Como rodar localmente
-- Dê dois cliques em `iniciar.bat` (usa `servidor.ps1`, servidor HTTP em PowerShell) e abra http://localhost:8080
+- Dê dois cliques em `iniciar.bat` (usa `servidor.ps1`, servidor HTTP em PowerShell com TcpListener, escuta toda a rede) e abra http://localhost:8080
+- **Celular/tablet na mesma Wi-Fi:** usar o endereço amarelo mostrado na janela (ex.: http://10.0.0.107:8080). Na 1ª vez, rodar `liberar_celular.bat` (cria regra de firewall, porta 8080, só rede local; pede admin). A Wi-Fi do PC está como rede "Pública".
+- **GitHub Pages:** ainda NÃO ativado — o repositório é privado; depende de decisão do usuário (tornar público ou não).
 - A máquina **não tem Node nem Python** instalados.
 
 ## Estrutura
