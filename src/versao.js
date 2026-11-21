@@ -1,2 +1,2 @@
-// Trocada automaticamente a cada commit (gancho .githooks/pre-commit).
-export const VERSAO = '21/11/2026 14:05';
+// Trocada antes de cada commit com  sh ferramentas/nova_versao.sh
+export const VERSAO = '21/11/2026 14:09';

@@ -1,5 +1,6 @@
 // Projéteis: tiro explosivo do Mr. Fun BOT e bolas de gosma dos cogumelos cuspidores.
 import * as THREE from 'three';
+import { som } from './audio.js';
 
 const RAIO_EXPLOSAO = 1.7;
 
@@ -57,6 +58,7 @@ export class Projeteis {
       if (fim) {
         if (p.dono === 'jogador') {
           inimigos.acertarArea(pos, RAIO_EXPLOSAO, p.dano, particulas);
+          som.efeito('explosao');
           particulas.explosao(pos, p.cor, 14, 5);
         } else {
           particulas.explosao(pos, p.cor, 8, 3);

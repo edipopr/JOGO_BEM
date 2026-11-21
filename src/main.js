@@ -11,6 +11,7 @@ import { GerenciadorItens, Checkpoints, Portal } from './itens.js';
 import { criarFlorestaDosAmigos } from './fases/floresta.js';
 import { configurarApp } from './pwa.js';
 import { VERSAO } from './versao.js';
+import { som } from './audio.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
 configurarApp({ podeRecarregar: () => estado !== 'jogando' && estado !== 'caindo' });
@@ -37,6 +38,13 @@ container.appendChild(renderizador.domElement);
 
 const cena = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 220);
+/** Celular em pé: abre mais o campo de visão para os monstros não ficarem tão "em cima". */
+function ajustarCamera() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.fov = camera.aspect < 1 ? 80 : 60;
+  camera.updateProjectionMatrix();
+}
+ajustarCamera();
 
 const fase = criarFlorestaDosAmigos(cena);
 const entrada = new Entrada(container);
@@ -77,11 +85,15 @@ function mostrarTela(nome) {
   const emJogo = nome === null;
   hud.classList.toggle('oculto', !emJogo);
   controlesToque.classList.toggle('oculto', !(emJogo && ehToque));
+  // Música de cada tela (durante a partida a música depende da área — ver passo())
+  if (nome === 'inicial' || nome === 'selecao') som.musica('menu');
+  else if (nome === 'vitoria' || nome === 'derrota') som.musica(null);
 }
 
 function mostrarMensagem(texto, segundos = 1.5) {
   $('mensagem').textContent = texto;
   $('mensagem').classList.remove('oculto');
+  $('dica').classList.add('oculto'); // não sobrepor a dica de controles
   tempoMensagem = segundos;
 }
 
@@ -167,6 +179,7 @@ function comecarPartida(voltarAoInicio) {
 }
 
 function aoColetar(tipo) {
+  som.efeito(tipo); // 'cristal' | 'estrela' | 'coracao'
   if (tipo === 'cristal') {
     partida.cristais++;
     partida.pontos += PONTOS.cristal;
@@ -185,6 +198,7 @@ function aoColetar(tipo) {
 
 function aoAtivarCheckpoint(posicao) {
   jogador.pontoRenascer.copy(posicao);
+  som.efeito('checkpoint');
   mostrarMensagem('Checkpoint!', 1.5);
 }
 
@@ -215,10 +229,39 @@ function vencer() {
     <span>Tempo</span><b>${min}:${String(seg).padStart(2, '0')}</b>
     <span>Pontos</span><b>${pontosTotais()}</b>`;
   mostrarTela('vitoria');
+  som.efeito('vitoria');
 }
 
+// ----- Som -----
+// O navegador só libera o áudio depois de um toque/clique/tecla
+for (const evento of ['pointerdown', 'keydown']) {
+  window.addEventListener(evento, () => som.iniciar(), { capture: true });
+}
+som.musica('menu');
+function atualizarBotaoSom() {
+  $('btn-som').textContent = som.mudo ? '🔇' : '🔊';
+  $('btn-som').title = som.mudo ? 'Ligar o som' : 'Desligar o som';
+}
+atualizarBotaoSom();
+$('btn-som').addEventListener('click', () => { som.alternarMudo(); atualizarBotaoSom(); });
+// Clique em qualquer botão das telas
+document.addEventListener('click', (e) => { if (e.target.closest('.tela button')) som.efeito('botao'); });
+
+// ----- Celular deitado -----
+/** Ao tocar em Jogar no celular: tela cheia + trava na horizontal (quando o aparelho deixa). */
+async function prepararTelaCelular() {
+  if (!ehToque) return;
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+    }
+    await screen.orientation?.lock?.('landscape');
+  } catch { /* iPhone e alguns navegadores não deixam: o aviso "Gire o celular" orienta */ }
+}
+$('btn-girar-ignorar').addEventListener('click', () => document.body.classList.add('ignorar-orientacao'));
+
 montarCartoes();
-$('btn-jogar').addEventListener('click', () => abrirSelecao());
+$('btn-jogar').addEventListener('click', () => { prepararTelaCelular(); abrirSelecao(); });
 $('btn-comecar').addEventListener('click', () => {
   comecarPartida(true);
   $('dica').classList.remove('oculto');
@@ -232,13 +275,12 @@ $('btn-trocar-vitoria').addEventListener('click', () => abrirSelecao());
 $('btn-trocar-derrota').addEventListener('click', () => abrirSelecao());
 
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  ajustarCamera();
   renderizador.setSize(window.innerWidth, window.innerHeight);
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console
-window.guizinhoDebug = { jogador, inimigos, fase, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
+window.guizinhoDebug = { jogador, inimigos, fase, som, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
 
 // ----- Loop principal -----
 const relogio = new THREE.Clock();
@@ -269,6 +311,8 @@ function passo(dt, desenhar = true) {
 
     if (estado === 'jogando') {
       partida.tempo += dt;
+      // Trilha: alegre na floresta, misteriosa no Bosque Escuro (fase.musicaEm)
+      som.musica(fase.musicaEm(jogador.posicao));
       jogador.atualizar(dt, entrada, cameraSeguidora.eixos(), fase, projeteis);
       if (jogador.quicou) particulas.explosao(jogador.posicao, 0xff6b9d, 10, 4);
       itens.atualizar(dt, jogador, particulas, aoColetar);
@@ -281,6 +325,8 @@ function passo(dt, desenhar = true) {
         estado = 'caindo';
         tempoAnimacao = 1.2;
         jogador.modelo.visible = false;
+        som.musica(null);
+        som.efeito('derrota');
         particulas.explosao(jogador.posicao.clone().setY(jogador.posicao.y + 0.8), 0x4cd137, 24, 6);
       }
     } else {

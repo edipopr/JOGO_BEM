@@ -4,6 +4,7 @@
 //  cuspidor   = cogumelo contaminado parado que cospe bolas de gosma (3 de vida)
 import * as THREE from 'three';
 import { GRAVIDADE, moverComColisao } from './fisica.js';
+import { som } from './audio.js';
 
 const DISTANCIA_VISAO = 10;
 const DISTANCIA_MAX_CASA = 16; // não se afasta demais de onde nasceu
@@ -223,6 +224,7 @@ export class Inimigo {
       if (!noAlcance) return;
       const origem = new THREE.Vector3(this.posicao.x + dx / dist * 0.6, this.posicao.y + 1.0, this.posicao.z + dz / dist * 0.6);
       const alvo = new THREE.Vector3(jogador.posicao.x, jogador.posicao.y + jogador.altura * 0.45, jogador.posicao.z);
+      som.efeito('cuspe');
       projeteis.disparar({
         origem, direcao: alvo.sub(origem), velocidade: 8, dono: 'inimigo', cor: 0xb04dff, raio: 0.28, duracao: 2.5,
       });
@@ -276,6 +278,7 @@ export class GerenciadorInimigos {
     const centro = ini.centro().clone();
     const derrotado = ini.receberDano(dano, ini.posicao.x - deX, ini.posicao.z - deZ);
     particulas.explosao(centro, 0xffd84a, 8, 4);
+    som.efeito(derrotado ? 'inimigo_derrotado' : 'acerto');
     if (derrotado) {
       particulas.explosao(centro, ini.cfg.cor, 22, 6);
       this.derrotados++;

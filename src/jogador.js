@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { GRAVIDADE, moverComColisao } from './fisica.js';
 import { PERSONAGENS } from './personagens.js';
+import { som } from './audio.js';
 
 const TEMPO_COYOTE = 0.1;  // ainda pode pular logo após sair da borda
 const BUFFER_PULO = 0.12;  // pulo apertado um pouco antes de tocar o chão
@@ -141,6 +142,7 @@ export class Jogador {
     if (this.tempoInvencivel > 0 || this.vida <= 0) return false;
     this.vida--;
     this.tempoInvencivel = TEMPO_INVENCIVEL;
+    som.efeito('dano');
     const dx = this.posicao.x - origemX, dz = this.posicao.z - origemZ;
     const d = Math.hypot(dx, dz) || 1;
     this.velocidade.set(dx / d * empurrao, 4 + empurrao * 0.4, dz / d * empurrao);
@@ -170,6 +172,7 @@ export class Jogador {
       this.tempoAtaque = 0;
       this.disparou = false;
       this.atingidos.clear();
+      som.efeito('ataque_' + this.tipoAtaque);
       if (Math.hypot(mx, mz) > 0.2) this.angulo = Math.atan2(mx, mz);
       this.velocidade.x += Math.sin(this.angulo) * this.ataque.passo;
       this.velocidade.z += Math.cos(this.angulo) * this.ataque.passo;
@@ -189,6 +192,7 @@ export class Jogador {
     this.tempoForaDoChao = this.noChao ? 0 : this.tempoForaDoChao + dt;
     if (this.tempoPulo < BUFFER_PULO && this.tempoForaDoChao < TEMPO_COYOTE) {
       this.velocidade.y = this.forcaPulo;
+      som.efeito('pulo');
       this.tempoPulo = 99;
       this.tempoForaDoChao = 99;
     }
@@ -200,6 +204,7 @@ export class Jogador {
       this.velocidade.y = FORCA_TRAMPOLIM;
       this.noChao = false;
       this.quicou = true;
+      som.efeito('quique');
     }
 
     // Caiu no vazio: perde 1 coração e volta ao checkpoint

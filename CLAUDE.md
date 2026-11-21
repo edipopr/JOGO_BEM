@@ -30,6 +30,9 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 - O loop do jogo tem try/catch: erros aparecem numa faixa vermelha na tela (`#erro`).
 - **Celular com toque de verdade:** `powershell -File ferramentas/celular.ps1 -Largura 390 -Altura 800 -Url http://localhost:8099/ -Saida <png> -Passos "toque:#btn-jogar|espera:1|toque:.cartao[data-id=tvRambon]|js:guizinhoDebug.jogador.id"` — emula Android (touch + mobile) via protocolo DevTools e mostra qual elemento recebeu cada toque.
 
+## Celular
+- O jogo é pensado para o celular **deitado**: manifest `orientation: landscape`; ao tocar em Jogar pede tela cheia + `screen.orientation.lock('landscape')`; em pé aparece o aviso `#girar` (com "Jogar assim mesmo"); em pé a câmera abre o FOV para 80°.
+
 ## Atualização no celular (PWA)
 - GitHub Pages manda `Cache-Control: max-age=600`. Por isso o `sw.js` busca com `cache: 'no-cache'` (rede primeiro, 5 s de limite, senão cópia guardada) e instala com `cache: 'reload'`.
 - `src/pwa.js`: registra com `updateViaCache: 'none'`, procura atualização ao voltar ao app e a cada 5 min; quando a versão nova assume (`controllerchange`) recarrega sozinho fora da partida, ou mostra o botão "Nova versão! Toque para atualizar".
@@ -52,6 +55,7 @@ src/particulas.js     efeitos de partículas
 src/fases/construtor.js  ConstrutorFase: ilhas, blocos, plataformas móveis, trampolins, árvores, luz
 src/fases/floresta.js    Floresta dos Amigos (layout, inimigos, itens, checkpoints, avisos, portal)
 src/pwa.js            service worker, atualização automática e botão "Instalar app"
+src/audio.js          som: efeitos e trilha sintetizados (Web Audio); som.efeito(nome), som.musica(nome|null), mudo salvo
 src/versao.js         versão exibida na tela inicial (trocada por ferramentas/nova_versao.sh)
 sw.js                 service worker (cache offline) — ao criar arquivo novo, adicionar em ARQUIVOS e subir VERSAO
 manifest.webmanifest  app instalável; ícones em icones/ (gerados por ferramentas/gerar_icones.ps1)

@@ -92,7 +92,7 @@ export function criarFlorestaDosAmigos(cena) {
 
   // Mensagens que aparecem uma vez ao passar perto
   const avisos = [
-    { x: 0, y: 0, z: 0, raio: 4, texto: 'Floresta dos Amigos! Siga a trilha e pegue os cristais.' },
+    { x: 0, y: 0, z: -2, raio: 2.5, texto: 'Floresta dos Amigos! Siga a trilha e pegue os cristais.' },
     { x: 0, y: 0, z: -9, raio: 4, texto: 'Gosmas contaminadas! Ataque para derrotá-las.' },
     { x: 0, y: 0, z: -38, raio: 3, texto: 'Pule no cogumelo gigante para subir!' },
     { x: 0, y: 6, z: -63, raio: 3.5, texto: 'Plataformas móveis: espere a hora certa de pular!' },
@@ -108,5 +108,7 @@ export function criarFlorestaDosAmigos(cena) {
     portal: new THREE.Vector3(0, 12, -137),
     pontoInicial: new THREE.Vector3(0, 0, 3),
     atualizar: (dt, corpos, foco) => f.atualizar(dt, corpos, foco),
+    /** Música conforme a área: Bosque Escuro (z entre -88 e -118) é misterioso. */
+    musicaEm: (p) => (p.z < -88 && p.z > -118 ? 'bosque' : 'floresta'),
   };
 }

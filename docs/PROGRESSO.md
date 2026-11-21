@@ -54,8 +54,12 @@
 ### Fase 6 — Menus, áudio e salvamento
 - [ ] Menu principal (Novo jogo, Continuar, Personagens, Configurações)
 - [ ] Pausa (Esc)
-- [ ] Música e efeitos sonoros (Web Audio)
+- [x] Música e efeitos sonoros (Web Audio) — adiantado
 - [ ] Salvamento local (progresso e configurações)
+
+### Extras feitos fora de ordem (pedidos do usuário)
+- [x] Áudio (adiantado da Fase 6): trilha sintetizada (menu, floresta, bosque) e efeitos (pulo, trampolim, 4 ataques, explosão, acerto, inimigo derrotado, cuspe, dano, cristal, estrela, coração, checkpoint, botão, vitória, derrota); botão 🔊/🔇
+- [x] Orientação: aviso "Gire o celular", app instalado abre deitado, trava na horizontal ao jogar
 
 ### Fase 7 — Publicação da demo
 - [x] GitHub Pages (adiantado): https://edipopr.github.io/JOGO_BEM/
@@ -85,3 +89,4 @@
 - **2026-11-21:** Web app instalável (PWA) e Fase 3 implementada (itens, checkpoints, portal, telas de vitória/derrota).
 - **2026-11-21:** Fase 4 (Floresta dos Amigos, 3 tipos de inimigos, plataformas móveis, trampolins) + 4 heróis jogáveis com tela de seleção. Testes automáticos com Chrome headless (ferramentas/teste.html).
 - **2026-11-21:** Correção da atualização no celular (cache do GitHub Pages + app aberto em segundo plano): versão visível, atualização automática, ferramentas/nova_versao.sh. Troca de herói testada com toque emulado (funciona; problema era versão misturada no cache).
+- **2026-11-21:** Trilha sonora e efeitos sintetizados; orientação horizontal no celular (aviso, trava, manifest).
