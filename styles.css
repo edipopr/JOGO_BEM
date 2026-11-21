@@ -166,3 +166,12 @@ html, body {
   background: rgba(120, 0, 0, .85); color: #fff; padding: 8px 12px; border-radius: 8px;
   font: 12px/1.4 monospace; white-space: pre-wrap; pointer-events: none;
 }
+
+/* Aviso de versão nova */
+#aviso-atualizacao {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 98;
+  max-width: calc(100% - 32px);
+  font: inherit; font-size: 16px; font-weight: bold; color: #fff; cursor: pointer;
+  background: #6a2bb8; border: none; border-radius: 24px; padding: 10px 20px;
+  box-shadow: 0 4px 0 #3d1670;
+}

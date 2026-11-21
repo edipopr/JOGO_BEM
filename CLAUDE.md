@@ -7,6 +7,7 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 - **Idioma:** todo o jogo (textos, menus, HUD, diálogos) em **português brasileiro**. Nomes de variáveis/funções também em português quando natural.
 - **Desenvolvimento por partes:** uma fase pequena por vez (ver PROGRESSO.md). Não adiantar fases futuras.
 - **Git:** após cada parte concluída, commit com mensagem em português e `git push` para `origin main` (https://github.com/edipopr/JOGO_BEM.git).
+- **Publicar versão nova (OBRIGATÓRIO antes de cada commit que muda o jogo):** rodar `sh ferramentas/nova_versao.sh` — troca a versão em `sw.js` e `src/versao.js`. Sem isso, celulares e apps instalados NÃO recebem a atualização. (Gancho automático do git foi bloqueado pelo modo de permissões; por isso é manual.)
 - **Ao terminar uma sessão/fase:** atualizar `docs/PROGRESSO.md` (marcar o que foi feito, registrar "Onde paramos" e o próximo passo).
 - Design completo do jogo: [Guizinho_Game_Design_Document.md](Guizinho_Game_Design_Document.md).
 
@@ -27,6 +28,12 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
   `"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --no-first-run --enable-unsafe-swiftshader --user-data-dir=<scratchpad>\perfil-chrome --window-size=1000,600 --virtual-time-budget=4000 --screenshot=<scratchpad>\x.png "http://localhost:8099/ferramentas/teste.html?heroi=funBot&teleporte=0,6,-64&roteiro=%2BW,espera:1,Espaco,J,-W"`
 - `ferramentas/teste.html`: abre o jogo, escolhe herói, teleporta e executa um roteiro (W:1 = segura W 1 s; +W/-W = segura/solta; Espaco; J; espera:1) avançando o jogo manualmente via `window.guizinhoDebug.passo(dt)` (o headless quase não gera quadros sozinho). Mostra posição/vida/derrotados embaixo e erros.
 - O loop do jogo tem try/catch: erros aparecem numa faixa vermelha na tela (`#erro`).
+- **Celular com toque de verdade:** `powershell -File ferramentas/celular.ps1 -Largura 390 -Altura 800 -Url http://localhost:8099/ -Saida <png> -Passos "toque:#btn-jogar|espera:1|toque:.cartao[data-id=tvRambon]|js:guizinhoDebug.jogador.id"` — emula Android (touch + mobile) via protocolo DevTools e mostra qual elemento recebeu cada toque.
+
+## Atualização no celular (PWA)
+- GitHub Pages manda `Cache-Control: max-age=600`. Por isso o `sw.js` busca com `cache: 'no-cache'` (rede primeiro, 5 s de limite, senão cópia guardada) e instala com `cache: 'reload'`.
+- `src/pwa.js`: registra com `updateViaCache: 'none'`, procura atualização ao voltar ao app e a cada 5 min; quando a versão nova assume (`controllerchange`) recarrega sozinho fora da partida, ou mostra o botão "Nova versão! Toque para atualizar".
+- A versão aparece na tela inicial ("versão dd/mm/aaaa hh:mm") — peça ao usuário para conferir.
 
 ## Estrutura
 ```
@@ -44,10 +51,11 @@ src/itens.js          cristais, corações, estrelas, checkpoints e portal de sa
 src/particulas.js     efeitos de partículas
 src/fases/construtor.js  ConstrutorFase: ilhas, blocos, plataformas móveis, trampolins, árvores, luz
 src/fases/floresta.js    Floresta dos Amigos (layout, inimigos, itens, checkpoints, avisos, portal)
-src/pwa.js            registra o service worker e o botão "Instalar app"
+src/pwa.js            service worker, atualização automática e botão "Instalar app"
+src/versao.js         versão exibida na tela inicial (trocada por ferramentas/nova_versao.sh)
 sw.js                 service worker (cache offline) — ao criar arquivo novo, adicionar em ARQUIVOS e subir VERSAO
 manifest.webmanifest  app instalável; ícones em icones/ (gerados por ferramentas/gerar_icones.ps1)
-ferramentas/          gerar_icones.ps1, teste.html
+ferramentas/          gerar_icones.ps1, teste.html, celular.ps1 (toque emulado), nova_versao.sh
 docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 ```
 

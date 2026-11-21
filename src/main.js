@@ -10,8 +10,11 @@ import { Projeteis } from './projeteis.js';
 import { GerenciadorItens, Checkpoints, Portal } from './itens.js';
 import { criarFlorestaDosAmigos } from './fases/floresta.js';
 import { configurarApp } from './pwa.js';
+import { VERSAO } from './versao.js';
 
-configurarApp();
+// Atualização automática: só recarrega sozinho fora de uma partida
+configurarApp({ podeRecarregar: () => estado !== 'jogando' && estado !== 'caindo' });
+document.getElementById('versao').textContent = VERSAO;
 
 const PONTOS = { cristal: 10, estrela: 100 };
 const CHAVE_PERSONAGEM = 'guizinho.personagem';

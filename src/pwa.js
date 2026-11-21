@@ -1,10 +1,46 @@
-// Web app instalável: registra o service worker e mostra o botão "Instalar app".
+// Web app instalável: service worker, atualização automática e botão "Instalar app".
 
-export function configurarApp() {
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* sem offline, mas o jogo funciona */ });
-  }
+/**
+ * podeRecarregar(): true quando dá para recarregar sem atrapalhar (fora de uma partida).
+ */
+export function configurarApp({ podeRecarregar = () => true } = {}) {
+  configurarAtualizacao(podeRecarregar);
+  configurarInstalacao();
+}
 
+function configurarAtualizacao(podeRecarregar) {
+  if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+  const jaTinhaVersao = !!navigator.serviceWorker.controller; // false na 1ª instalação
+  const aviso = document.getElementById('aviso-atualizacao');
+  let recarregando = false;
+
+  const recarregar = () => {
+    if (recarregando) return;
+    recarregando = true;
+    location.reload();
+  };
+  aviso.addEventListener('click', recarregar);
+
+  // Uma versão nova assumiu o controle: recarrega (ou avisa, se estiver jogando)
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!jaTinhaVersao) return;
+    if (podeRecarregar()) recarregar();
+    else aviso.classList.remove('oculto');
+  });
+
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then((registro) => {
+      // Procura atualização ao voltar para o app e a cada 5 minutos
+      const procurar = () => registro.update().catch(() => { /* sem internet */ });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') procurar();
+      });
+      setInterval(procurar, 5 * 60 * 1000);
+    })
+    .catch(() => { /* sem offline, mas o jogo funciona */ });
+}
+
+function configurarInstalacao() {
   const instalado = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches ||
     window.navigator.standalone === true;
   if (instalado) return;
