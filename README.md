@@ -1,8 +1,14 @@
 # Guizinho: A Invasão do Pesadelo
 
-Jogo arcade 3D de aventura para navegador (computador, celular e tablet), protagonizado por Guizinho e seus amigos.
+Jogo arcade 3D de aventura para navegador (computador, celular e tablet), protagonizado por Guizinho e seus amigos. Feito com [Three.js](https://threejs.org), sem etapa de build.
 
-- Documento de design: [Guizinho_Game_Design_Document.md](Guizinho_Game_Design_Document.md)
+## Como jogar localmente
+Dê dois cliques em `iniciar.bat` — o jogo abre em http://localhost:8080
+
+**Controles (PC):** WASD/setas mover · Espaço pular · Shift correr · arraste o mouse para girar a câmera
+**Controles (toque):** joystick à esquerda · botão Pular · arraste a tela para girar a câmera
+
+## Documentos
+- Design do jogo: [Guizinho_Game_Design_Document.md](Guizinho_Game_Design_Document.md)
+- Progresso e fases: [docs/PROGRESSO.md](docs/PROGRESSO.md)
 - Ideia original: [JOGO.txt](JOGO.txt)
-
-**Estado:** conceito e planejamento. Primeira meta: *Demo da Floresta dos Amigos*.

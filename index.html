@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#7ec8ff">
+  <title>Guizinho: A Invasão do Pesadelo</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="jogo"></div>
+
+  <div id="hud" class="oculto">
+    <div id="dica"></div>
+  </div>
+
+  <div id="tela-inicial" class="tela">
+    <h1>Guizinho</h1>
+    <h2>A Invasão do Pesadelo</h2>
+    <button id="btn-jogar">Jogar</button>
+    <p class="versao">Protótipo — Fase 1</p>
+  </div>
+
+  <div id="controles-toque" class="oculto">
+    <div id="joystick"><div id="joystick-pino"></div></div>
+    <button id="btn-pular" class="btn-toque">Pular</button>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

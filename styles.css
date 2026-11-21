@@ -1,0 +1,76 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: #7ec8ff;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color: #fff;
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
+}
+
+#jogo { position: fixed; inset: 0; touch-action: none; }
+#jogo canvas { display: block; }
+
+.oculto { display: none !important; }
+
+/* ---------- Telas ---------- */
+.tela {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 16px; text-align: center;
+  background: radial-gradient(circle at 50% 40%, rgba(40, 140, 60, .55), rgba(10, 30, 40, .85));
+}
+.tela h1 {
+  font-size: clamp(48px, 12vw, 96px);
+  color: #7dff5a;
+  text-shadow: 0 6px 0 #ff8a1f, 0 10px 20px rgba(0,0,0,.5);
+  letter-spacing: 2px;
+}
+.tela h2 {
+  font-size: clamp(20px, 5vw, 34px);
+  color: #ffd84a;
+  text-shadow: 0 3px 0 #6a2bb8;
+  margin-bottom: 20px;
+}
+.tela button {
+  font: inherit; font-size: 28px; font-weight: bold;
+  padding: 14px 48px; border: none; border-radius: 40px;
+  background: #ff8a1f; color: #fff; cursor: pointer;
+  box-shadow: 0 6px 0 #b35500;
+  transition: transform .1s;
+}
+.tela button:hover { transform: scale(1.05); }
+.tela button:active { transform: translateY(4px); box-shadow: 0 2px 0 #b35500; }
+.versao { opacity: .7; font-size: 14px; margin-top: 16px; }
+
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; pointer-events: none; }
+#dica {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  background: rgba(0,0,0,.4); padding: 8px 16px; border-radius: 20px;
+  font-size: 14px; text-align: center;
+}
+
+/* ---------- Controles de toque ---------- */
+#controles-toque { position: fixed; inset: 0; pointer-events: none; }
+#joystick {
+  position: absolute; left: 24px; bottom: 24px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(255,255,255,.2); border: 3px solid rgba(255,255,255,.5);
+  pointer-events: auto; touch-action: none;
+}
+#joystick-pino {
+  position: absolute; left: 50%; top: 50%;
+  width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%;
+  background: rgba(255,255,255,.75);
+}
+.btn-toque {
+  position: absolute; pointer-events: auto; touch-action: none;
+  width: 96px; height: 96px; border-radius: 50%; border: none;
+  font: inherit; font-weight: bold; font-size: 18px; color: #fff;
+  box-shadow: 0 5px 0 rgba(0,0,0,.3);
+}
+.btn-toque:active { transform: translateY(3px); }
+#btn-pular { right: 24px; bottom: 32px; background: rgba(60, 170, 255, .85); }
