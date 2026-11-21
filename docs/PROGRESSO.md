@@ -2,13 +2,15 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 4 concluída + extras pedidos pelo usuário: escolha de 4 heróis, trilha sonora e efeitos, jogo na horizontal no celular, atualização automática do app
-- **Jogo online:** https://edipopr.github.io/JOGO_BEM/ — versão publicada: 21/11/2026 14:09
+- **Fase atual:** Fase 5 concluída (chefão Guardião da Floresta) + ajustes pedidos: 5 vidas, mira automática, tela de vitória no celular deitado, painel de partidas
+- **Jogo online:** https://edipopr.github.io/JOGO_BEM/ (versão aparece na tela inicial)
 - **Aguardando retorno do usuário:**
-  - Se o celular passou a mostrar a versão nova (pedimos para fechar o app por completo e abrir de novo; se não, limpar dados do site no Chrome)
-  - Se a troca de herói funciona no celular dele (no teste com toque emulado funcionou; suspeita era cache misturado)
-  - Volume/qualidade dos sons e da música (Claude não consegue ouvir; ajustar em `src/audio.js`)
-- **Próximo passo:** **Fase 5 — Chefão Guardião da Floresta** na arena (golpe no chão, investida, bolas de energia; vulnerável após 3 ciclos; barra de vida; derrotá-lo abre o portal). Lembrar: som do chefão e música de chefão em `src/audio.js`.
+  - Dificuldade do chefão (9 de vida, 3 golpes por cansaço; ajustar VIDA/DANO_POR_CANSACO/TEMPO_VULNERAVEL em `src/chefao.js`)
+  - Se a mira automática e as áreas maiores deixaram os heróis fáceis de acertar (ajustar `ATAQUES` em `src/jogador.js`)
+  - Se o botão "Jogar de novo" aparece no celular deitado
+  - Painel conta só as partidas DESTE aparelho; contagem de todos os jogadores precisaria de um serviço externo (perguntar)
+  - Volume/qualidade dos sons e da música (Claude não consegue ouvir)
+- **Próximo passo:** **Fase 6 — Menus e salvamento** (menu principal com Continuar, pausa com Esc, salvar progresso e configurações).
 - **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
 
 ## Fases
@@ -51,10 +53,19 @@
 - [x] Arena com pilares e portal de saída (chefão vem na Fase 5)
 - [x] Construtor de fases reutilizável (`src/fases/construtor.js`)
 
-### Fase 5 — Chefão: Guardião da Floresta
-- [ ] Ataques: golpe no chão, investida, bolas de energia
-- [ ] Fica vulnerável após três ciclos
-- [ ] Barra de vida do chefão
+### Fase 5 — Chefão: Guardião da Floresta ✅
+- [x] Ataques: golpe no chão (onda de choque — pular), investida (sair da frente), bolas de energia em leque
+- [x] Após os 3 ataques fica cansado (núcleo amarelo, estrelinhas): só aí leva dano, máx. 3 por vez; 9 de vida = 3 ciclos; fica mais rápido a cada ciclo
+- [x] Barra de vida do chefão no HUD; música e sons próprios; dicas na 1ª vez de cada ataque
+- [x] Golpes fora da hora são bloqueados ("tink"); raízes fecham a entrada da arena durante a luta; muretas na beirada
+- [x] Derrotado: é purificado (copa verde), +500 pts, e o portal de saída aparece
+- [x] "Tentar de novo" faz o chefão voltar a dormir com vida cheia
+
+### Ajustes pedidos (2026-11-21)
+- [x] 5 corações
+- [x] Mira automática (vira para o inimigo mais próximo à frente; projétil mira também na altura) e áreas de golpe maiores
+- [x] Tela de vitória/derrota cabe no celular deitado (botões visíveis; rola se faltar espaço)
+- [x] Painel do jogo (botão 📊 na tela inicial): partidas, vitórias, derrotas, tempo, recordes, partidas por herói, últimas 10 — salvo no aparelho
 
 ### Fase 6 — Menus, áudio e salvamento
 - [ ] Menu principal (Novo jogo, Continuar, Personagens, Configurações)
@@ -95,3 +106,4 @@
 - **2026-11-21:** Fase 4 (Floresta dos Amigos, 3 tipos de inimigos, plataformas móveis, trampolins) + 4 heróis jogáveis com tela de seleção. Testes automáticos com Chrome headless (ferramentas/teste.html).
 - **2026-11-21:** Correção da atualização no celular (cache do GitHub Pages + app aberto em segundo plano): versão visível, atualização automática, ferramentas/nova_versao.sh. Troca de herói testada com toque emulado (funciona; problema era versão misturada no cache).
 - **2026-11-21:** Trilha sonora e efeitos sintetizados; orientação horizontal no celular (aviso, trava, manifest).
+- **2026-11-21:** Ajustes (5 vidas, mira automática, tela de vitória deitada, painel de partidas) e Fase 5 (chefão Guardião da Floresta).

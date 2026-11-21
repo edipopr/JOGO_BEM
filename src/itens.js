@@ -162,11 +162,19 @@ export class Portal {
     this.grupo.position.set(posicao.x, posicao.y + 1.6, posicao.z);
     cena.add(this.grupo);
     this.tempo = 0;
+    this.aberto = true;
+  }
+
+  /** Mostra ou esconde o portal (fechado até derrotar o chefão). */
+  abrir(aberto = true) {
+    this.aberto = aberto;
+    this.grupo.visible = aberto;
   }
 
   /** Retorna true quando o jogador entra no portal. */
   atualizar(dt, jogador) {
     this.tempo += dt;
+    if (!this.aberto) return false;
     this.grupo.rotation.y += dt * 0.8;
     this.anel.rotation.z += dt * 2;
     this.miolo.material.opacity = 0.45 + Math.sin(this.tempo * 4) * 0.15;

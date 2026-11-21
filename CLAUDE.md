@@ -40,7 +40,7 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 
 ## Estrutura
 ```
-index.html            página (importmap, HUD, telas: inicial, seleção, vitória, derrota; controles de toque)
+index.html            página (importmap, HUD + barra do chefão, telas: inicial, seleção, painel, vitória, derrota; controles de toque)
 styles.css            estilos da interface
 src/main.js           inicialização, estados (inicio/selecao/jogando/caindo/vitoria/derrota), loop, HUD
 src/entrada.js        teclado, mouse e toque (joystick virtual, botões Atacar/Pular)
@@ -49,6 +49,8 @@ src/personagens.js    PERSONAGENS: 4 heróis (atributos 1–5 do GDD, tipo de at
 src/jogador.js        jogador com o herói escolhido: movimento, pulo, ataques (soco/onda/raio/projetil), vida
 src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
 src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
+src/chefao.js         chefão Guardião da Floresta (ciclo golpe/investida/bolas → cansado; entra no GerenciadorInimigos via inimigos.adicionar)
+src/estatisticas.js   painel do jogo: partidas/vitórias/derrotas/recordes salvos no aparelho (localStorage)
 src/projeteis.js      tiros do jogador (explodem em área) e dos inimigos
 src/itens.js          cristais, corações, estrelas, checkpoints e portal de saída
 src/particulas.js     efeitos de partículas
@@ -68,3 +70,4 @@ docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 - A fase anda no sentido **-Z**; o jogador começa olhando para -Z (angulo = π) com a câmera atrás (+Z).
 - Equilíbrio: a TV Rambon (pulo 2 → ~1,7 m de altura, vel. 4,5) é o herói mais limitado; todo salto obrigatório deve ser possível com ela (degraus ≤ 1,2 m, vãos ≤ 2,5 m).
 - Novos personagens: adicionar em `PERSONAGENS` (personagens.js). Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase.
+- Combate: `jogador.alvos()` lista os alvos da mira automática; um alvo com `bloquear()` (chefão) pode recusar dano. O portal fica fechado (`portal.abrir(false)`) até o chefão ser derrotado.

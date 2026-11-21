@@ -49,12 +49,37 @@ export function criarFlorestaDosAmigos(cena) {
   f.bloco(-1, -113, 9.6, 2.6, 2.6, 0.8, 0xb08550);
   f.bloco(2, -116.5, 10.8, 2.6, 2.6, 0.8, 0xb08550);
 
-  // ---------- G. Arena do Guardião ----------
+  // ---------- G. Arena do Guardião (chefão: src/chefao.js; o portal só abre quando ele é derrotado) ----------
   f.ilha(0, -131, 12, 24, 24, { alt: 14, grama: 0x5ec24a });
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
     f.bloco(Math.sin(a) * 10, -131 + Math.cos(a) * 10, 15, 1.2, 1.2, 3, 0x9b9b9b);
   }
+  // Muretas na beirada (os empurrões da luta não jogam o herói no vazio); entrada em x de -1,5 a 4,5
+  const corMureta = 0xa8a29a;
+  f.bloco(0, -142.7, 13.2, 24, 0.6, 1.2, corMureta);
+  f.bloco(-11.7, -131, 13.2, 0.6, 24, 1.2, corMureta);
+  f.bloco(11.7, -131, 13.2, 0.6, 24, 1.2, corMureta);
+  f.bloco(-6.75, -119.3, 13.2, 10.5, 0.6, 1.2, corMureta);
+  f.bloco(8.25, -119.3, 13.2, 7.5, 0.6, 1.2, corMureta);
+  // Raízes contaminadas que fecham a entrada enquanto o chefão luta (chefao.js liga/desliga)
+  const raizes = new THREE.Group();
+  // semitransparentes: a câmera fica atrás delas quando o herói está perto da entrada
+  const matRaiz = new THREE.MeshLambertMaterial({ color: 0x8b4fd0, flatShading: true, transparent: true, opacity: 0.55 });
+  for (let i = 0; i < 7; i++) {
+    const raiz = new THREE.Mesh(new THREE.ConeGeometry(0.45, 2.6 + (i % 2) * 0.6, 5), matRaiz);
+    raiz.position.set(-1.1 + i * 0.85, 1.3, 0);
+    raiz.rotation.z = (i % 2 ? 0.15 : -0.15);
+    raiz.castShadow = true;
+    raizes.add(raiz);
+  }
+  raizes.position.set(0, 12, -119.3);
+  raizes.visible = false;
+  cena.add(raizes);
+  const barreira = {
+    malha: raizes,
+    caixa: new THREE.Box3(new THREE.Vector3(-1.5, 12, -119.7), new THREE.Vector3(4.5, 15, -118.9)),
+  };
 
   // ---------- Inimigos ----------
   const inimigos = [
@@ -81,7 +106,7 @@ export function criarFlorestaDosAmigos(cena) {
     [-7, 12, -55.5],    // na nuvem do trampolim secreto
     [7.5, 6, -109.5],   // no canto mais escuro do bosque
   ];
-  const coracoes = [[3, 0, -36], [0, 6, -91], [6, 12, -124]];
+  const coracoes = [[3, 0, -36], [0, 6, -91], [6, 12, -124], [-7, 12, -136]];
   const itens = [
     ...cristais.map(([x, y, z]) => ({ tipo: 'cristal', x, y, z })),
     ...estrelas.map(([x, y, z]) => ({ tipo: 'estrela', x, y, z })),
@@ -97,7 +122,7 @@ export function criarFlorestaDosAmigos(cena) {
     { x: 0, y: 0, z: -38, raio: 3, texto: 'Pule no cogumelo gigante para subir!' },
     { x: 0, y: 6, z: -63, raio: 3.5, texto: 'Plataformas móveis: espere a hora certa de pular!' },
     { x: 0, y: 6, z: -91, raio: 3.5, texto: 'O Bosque Escuro está contaminado... cuidado!' },
-    { x: 0, y: 12, z: -121, raio: 4, texto: 'Arena do Guardião da Floresta. Ele chega em breve! Entre no portal.' },
+    { x: 0, y: 12, z: -121, raio: 4, texto: 'Arena do Guardião da Floresta... Ele está dormindo. Cuidado!' },
   ];
 
   return {
@@ -106,6 +131,8 @@ export function criarFlorestaDosAmigos(cena) {
     trampolins: f.trampolins,
     inimigos, itens, checkpoints, avisos,
     portal: new THREE.Vector3(0, 12, -137),
+    arena: new THREE.Vector3(0, 12, -131), // onde o chefão dorme
+    barreira, // raízes que fecham a arena durante a luta
     pontoInicial: new THREE.Vector3(0, 0, 3),
     atualizar: (dt, corpos, foco) => f.atualizar(dt, corpos, foco),
     /** Música conforme a área: Bosque Escuro (z entre -88 e -118) é misterioso. */

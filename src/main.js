@@ -13,6 +13,7 @@ import { configurarApp } from './pwa.js';
 import { VERSAO } from './versao.js';
 import { som } from './audio.js';
 import { estatisticas } from './estatisticas.js';
+import { Chefao } from './chefao.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
 configurarApp({ podeRecarregar: () => estado !== 'jogando' && estado !== 'caindo' });
@@ -57,6 +58,9 @@ const portal = new Portal(cena, fase.portal);
 const particulas = new Particulas(cena);
 const projeteis = new Projeteis(cena);
 const cameraSeguidora = new CameraSeguidora(camera);
+const chefao = new Chefao(cena, fase.arena, particulas, { barreira: fase.barreira, caixas: fase.caixas });
+inimigos.adicionar(chefao); // entra no combate como um inimigo (golpes, projéteis, mira)
+portal.abrir(false);         // o portal só abre quando o chefão for derrotado
 const corpos = [jogador, ...inimigos.lista]; // carregados pelas plataformas móveis
 jogador.alvos = () => inimigos.lista; // para a mira automática
 cameraSeguidora.atualizar(jogador.posicao, 0, true);
@@ -134,6 +138,13 @@ function atualizarHud() {
   $('qtd-cristais').textContent = `${partida.cristais}/${totalCristais}`;
   $('qtd-estrelas').textContent = `${partida.estrelas}/${totalEstrelas}`;
   $('pontos').textContent = `${pontosTotais()} pts`;
+  // Barra de vida do chefão: aparece quando ele acorda
+  const barraVisivel = chefao.acordado;
+  $('chefao-barra').classList.toggle('oculto', !barraVisivel);
+  if (barraVisivel) {
+    $('chefao-vida').style.width = `${(chefao.vida / chefao.vidaMax) * 100}%`;
+    $('chefao-barra').classList.toggle('vulneravel', chefao.estado === 'vulneravel');
+  }
 }
 
 // ----- Seleção de personagem -----
@@ -180,10 +191,13 @@ function comecarPartida(voltarAoInicio) {
     inimigos.reiniciar();
     registrado.tempo = 0;
     registrado.inimigos = 0;
+    tempoAbrirPortal = 0;
     estatisticas.comecou(jogador.id);
   } else {
     estatisticas.tentouDeNovo();
+    chefao.reiniciarLuta(); // chefão volta a dormir com vida cheia (se ainda não foi derrotado)
   }
+  portal.abrir(chefao.derrotado);
   projeteis.limpar();
   jogador.reiniciar(voltarAoInicio);
   cameraSeguidora.distancia = 9;
@@ -220,6 +234,18 @@ function aoAtivarCheckpoint(posicao) {
   som.efeito('checkpoint');
   mostrarMensagem('Checkpoint!', 1.5);
 }
+
+let tempoAbrirPortal = 0;
+// Eventos do chefão (chefao.js)
+chefao.avisar = (evento, texto) => {
+  if (evento === 'acordou') mostrarMensagem('O Guardião da Floresta acordou contaminado!', 2.5);
+  else if (evento === 'dica') mostrarMensagem(texto, 2.5);
+  else if (evento === 'vulneravel') mostrarMensagem('Ele cansou! Ataque o coração brilhante!', 2.5);
+  else if (evento === 'derrotado') {
+    mostrarMensagem('Você purificou o Guardião! O portal se abriu!', 4);
+    tempoAbrirPortal = 2.6; // o portal aparece depois da purificação (ver passo())
+  }
+};
 
 function verificarAvisos() {
   for (const a of fase.avisos) {
@@ -305,7 +331,7 @@ window.addEventListener('resize', () => {
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console
-window.guizinhoDebug = { jogador, inimigos, fase, som, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
+window.guizinhoDebug = { jogador, inimigos, chefao, portal, fase, som, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
 
 // ----- Loop principal -----
 const relogio = new THREE.Clock();
@@ -337,12 +363,20 @@ function passo(dt, desenhar = true) {
     if (estado === 'jogando') {
       partida.tempo += dt;
       // Trilha: alegre na floresta, misteriosa no Bosque Escuro (fase.musicaEm)
-      som.musica(fase.musicaEm(jogador.posicao));
+      som.musica(chefao.acordado ? 'chefao' : fase.musicaEm(jogador.posicao));
       jogador.atualizar(dt, entrada, cameraSeguidora.eixos(), fase, projeteis);
       if (jogador.quicou) particulas.explosao(jogador.posicao, 0xff6b9d, 10, 4);
       itens.atualizar(dt, jogador, particulas, aoColetar);
       checkpoints.atualizar(dt, jogador, particulas, aoAtivarCheckpoint);
       verificarAvisos();
+      if (tempoAbrirPortal > 0) {
+        tempoAbrirPortal -= dt;
+        if (tempoAbrirPortal <= 0 && chefao.derrotado) {
+          portal.abrir(true);
+          som.efeito('portal');
+          particulas.explosao(portal.posicao.clone().setY(portal.posicao.y + 1.6), 0x5ad1ff, 30, 6);
+        }
+      }
       if (portal.atualizar(dt, jogador)) {
         particulas.explosao(jogador.posicao.clone().setY(jogador.posicao.y + 1), 0x5ad1ff, 30, 7);
         vencer();

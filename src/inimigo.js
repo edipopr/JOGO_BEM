@@ -267,6 +267,11 @@ export class GerenciadorInimigos {
     this.pontos = 0;
   }
 
+  /** Coloca mais um "inimigo" no combate (ex.: o chefão). */
+  adicionar(ini) {
+    this.lista.push(ini);
+  }
+
   reiniciar() {
     this.derrotados = 0;
     this.pontos = 0;
@@ -275,6 +280,7 @@ export class GerenciadorInimigos {
 
   /** Aplica dano a um inimigo vindo da posição (deX, deZ). */
   acertar(ini, dano, deX, deZ, particulas) {
+    if (ini.bloquear?.()) return false; // chefão protegido (só leva dano quando está cansado)
     const centro = ini.centro().clone();
     const derrotado = ini.receberDano(dano, ini.posicao.x - deX, ini.posicao.z - deZ);
     particulas.explosao(centro, 0xffd84a, 8, 4);
@@ -317,7 +323,7 @@ export class GerenciadorInimigos {
       const dx = jogador.posicao.x - ini.posicao.x, dz = jogador.posicao.z - ini.posicao.z;
       const sobreposicaoY = jogador.posicao.y < ini.posicao.y + ini.altura && jogador.posicao.y + jogador.altura > ini.posicao.y;
       if (ini.tempoAtordoado <= 0 && sobreposicaoY && Math.hypot(dx, dz) < ini.raio + jogador.raio - 0.05) {
-        jogador.levarDano(ini.posicao.x, ini.posicao.z);
+        jogador.levarDano(ini.posicao.x, ini.posicao.z, ini.empurrao ?? 8);
       }
     }
   }

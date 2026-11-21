@@ -36,6 +36,15 @@ const MUSICAS = {
     baixo: padrao(`A2 . . . A2 . . . | D2 . . . D2 . . . | F2 . . . F2 . . . | E2 . . . E2 . . .`),
     bateria: padrao(`k . . h k . s . | k . . h k . s h`),
   },
+  // Chefão: rápida, tensa (menor), graves fortes
+  chefao: {
+    bpm: 152, volume: 0.5,
+    melodia: padrao(`A4 . C5 A4 E5 . D5 C5 | B4 . D5 B4 E5 . D5 B4 | A4 . C5 A4 F5 . E5 D5 | E5 . G#4 . B4 . E5 .
+                     A5 . G5 F5 E5 . D5 C5 | D5 . C5 B4 C5 . A4 . | F5 . E5 D5 C5 . B4 A4 | G#4 . B4 . E5 . . .`),
+    baixo: padrao(`A2 A2 . A2 A2 . A2 . | G2 G2 . G2 G2 . G2 . | F2 F2 . F2 F2 . F2 . | E2 E2 . E2 E2 . E2 .
+                   A2 A2 . A2 A2 . A2 . | D2 D2 . D2 D2 . D2 . | F2 F2 . F2 F2 . F2 . | E2 E2 . E2 E2 . E2 .`),
+    bateria: padrao(`k h s h k k s h | k h s h k k s s`),
+  },
 };
 
 class Audio {
@@ -177,6 +186,41 @@ class Audio {
         break;
       case 'derrota':
         this._arpejo(['G4', 'F#4', 'F4', 'E4'], t, 0.22, { tipo: 'triangle', volume: 0.25 });
+        break;
+      // ----- Chefão -----
+      case 'chefao_rugido':
+        this._tom(110, t, 1.1, { tipo: 'sawtooth', ate: 55, volume: 0.3, ataque: 0.1 });
+        this._tom(116, t, 1.1, { tipo: 'square', ate: 58, volume: 0.12, ataque: 0.1 });
+        this._ruido(t, 1.0, { volume: 0.3, freqFiltro: 600, ate: 150 });
+        break;
+      case 'chefao_golpe':
+        this._tom(90, t, 0.5, { tipo: 'sine', ate: 30, volume: 0.6 });
+        this._ruido(t, 0.5, { volume: 0.5, freqFiltro: 900, ate: 60 });
+        break;
+      case 'chefao_investida':
+        this._tom(150, t, 0.6, { tipo: 'sawtooth', ate: 300, volume: 0.2 });
+        this._ruido(t, 0.6, { volume: 0.25, filtro: 'bandpass', freqFiltro: 400, ate: 1500 });
+        break;
+      case 'chefao_bolas':
+        for (let i = 0; i < 3; i++) this._tom(500 - i * 80, t + i * 0.04, 0.25, { tipo: 'square', ate: 150, volume: 0.1 });
+        break;
+      case 'chefao_cansado':
+        this._arpejo(['E5', 'C5', 'A4'], t, 0.14, { tipo: 'triangle', volume: 0.25 });
+        this._arpejo(['E6', 'G6', 'E6', 'G6'], t + 0.45, 0.08, { tipo: 'sine', volume: 0.12 });
+        break;
+      case 'chefao_dor':
+        this._tom(260, t, 0.3, { tipo: 'sawtooth', ate: 120, volume: 0.25 });
+        this._ruido(t, 0.15, { volume: 0.2, freqFiltro: 2500 });
+        break;
+      case 'chefao_derrotado':
+        this._tom(140, t, 1.4, { tipo: 'sawtooth', ate: 40, volume: 0.25, ataque: 0.05 });
+        this._ruido(t, 1.2, { volume: 0.35, freqFiltro: 2000, ate: 100 });
+        this._arpejo(['C5', 'E5', 'G5', 'C6', 'E6', 'G6', 'C7'], t + 1.3, 0.1, { tipo: 'triangle', volume: 0.18 });
+        break;
+      case 'bloqueio': this._tom(1400, t, 0.12, { tipo: 'triangle', ate: 1100, volume: 0.15 }); break;
+      case 'portal':
+        this._arpejo(['G4', 'C5', 'E5', 'G5', 'C6'], t, 0.08, { tipo: 'sine', volume: 0.2 });
+        this._ruido(t, 0.8, { volume: 0.12, filtro: 'bandpass', freqFiltro: 500, ate: 5000 });
         break;
       default: break;
     }

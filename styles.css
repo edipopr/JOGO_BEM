@@ -246,3 +246,21 @@ html, body {
   .painel-numeros b { font-size: 20px; }
   .painel-numeros div { padding: 4px; }
 }
+
+/* ---------- Barra de vida do chefão ---------- */
+.chefao-barra {
+  position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+  width: min(420px, calc(100% - 140px)); text-align: center;
+  font-size: 15px; font-weight: bold; color: #ffd84a; text-shadow: 0 2px 0 #3d1670;
+}
+.chefao-vida {
+  height: 16px; margin-top: 3px; border-radius: 8px; overflow: hidden;
+  background: rgba(0,0,0,.5); border: 2px solid rgba(255,255,255,.7);
+}
+.chefao-vida i {
+  display: block; height: 100%; width: 100%;
+  background: linear-gradient(#d88bff, #8b2fc9); transition: width .25s;
+}
+.chefao-barra.vulneravel .chefao-vida i { background: linear-gradient(#fff3a0, #ffb02e); }
+@media (max-height: 500px) { .chefao-barra { top: 50px; font-size: 13px; } .chefao-vida { height: 12px; } }
+@media (max-height: 500px) { #mensagem { top: 42%; font-size: 20px; } }
