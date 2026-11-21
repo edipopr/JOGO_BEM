@@ -2,6 +2,9 @@
 
 Jogo arcade 3D de aventura para navegador (computador, celular e tablet), protagonizado por Guizinho e seus amigos. Feito com [Three.js](https://threejs.org), sem etapa de build.
 
+## Jogar agora
+**https://edipopr.github.io/JOGO_BEM/** — funciona no computador, celular e tablet.
+
 ## Como jogar localmente
 Dê dois cliques em `iniciar.bat` — o jogo abre em http://localhost:8080
 

@@ -17,8 +17,8 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 
 ## Como rodar localmente
 - Dê dois cliques em `iniciar.bat` (usa `servidor.ps1`, servidor HTTP em PowerShell com TcpListener, escuta toda a rede) e abra http://localhost:8080
-- **Celular/tablet na mesma Wi-Fi:** usar o endereço amarelo mostrado na janela (ex.: http://10.0.0.107:8080). Na 1ª vez, rodar `liberar_celular.bat` (cria regra de firewall, porta 8080, só rede local; pede admin). A Wi-Fi do PC está como rede "Pública".
-- **GitHub Pages:** ainda NÃO ativado — o repositório é privado; depende de decisão do usuário (tornar público ou não).
+- **Celular/tablet na mesma Wi-Fi:** usar o endereço amarelo mostrado na janela (ex.: http://192.168.x.x:8080). Na 1ª vez, rodar `liberar_celular.bat` (cria regra de firewall, porta 8080, só rede local; pede admin). A Wi-Fi do PC está como rede "Pública".
+- **GitHub Pages:** https://edipopr.github.io/JOGO_BEM/ (repositório público desde 2026-11-21; atualiza sozinho a cada push na main).
 - A máquina **não tem Node nem Python** instalados.
 
 ## Estrutura

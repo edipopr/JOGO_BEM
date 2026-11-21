@@ -3,6 +3,7 @@
 ## Onde paramos
 - **Última atualização:** 2026-11-21
 - **Fase atual:** Fase 2 concluída (aguardando teste do usuário)
+- **Jogo online:** https://edipopr.github.io/JOGO_BEM/
 - **Próximo passo:** testar a Fase 2; depois iniciar a **Fase 3 — Itens e objetivos** (cristais, coração, estrela, checkpoint, telas de vitória/derrota).
 
 ## Fases
@@ -52,7 +53,7 @@
 - [ ] Salvamento local (progresso e configurações)
 
 ### Fase 7 — Publicação da demo
-- [ ] GitHub Pages
+- [x] GitHub Pages (adiantado): https://edipopr.github.io/JOGO_BEM/
 - [ ] PWA (instalar e jogar offline)
 - [ ] Testes em navegadores, celular e tablet
 
@@ -73,3 +74,4 @@
 - **2026-11-21:** GDD lido; repositório criado; tecnologia definida (Three.js); Fase 1 implementada.
 - **2026-11-21:** Fase 2 implementada (combate, inimigos, vida, partículas; física movida para src/fisica.js).
 - **2026-11-21:** Servidor reescrito para aceitar a rede local (celular); GitHub Pages pendente (repo privado).
+- **2026-11-21:** Repositório tornado público e GitHub Pages ativado.
