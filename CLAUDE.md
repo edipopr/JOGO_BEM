@@ -18,6 +18,7 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 
 ## Como rodar localmente
 - Dê dois cliques em `iniciar.bat` (usa `servidor.ps1`, servidor HTTP em PowerShell com TcpListener, escuta toda a rede) e abra http://localhost:8080
+- A contagem online (src/contagem.js) fica DESLIGADA em localhost — testes não contam.
 - **Celular/tablet na mesma Wi-Fi:** usar o endereço amarelo mostrado na janela (ex.: http://192.168.x.x:8080). Na 1ª vez, rodar `liberar_celular.bat` (cria regra de firewall, porta 8080, só rede local; pede admin). A Wi-Fi do PC está como rede "Pública".
 - **GitHub Pages:** https://edipopr.github.io/JOGO_BEM/ (repositório público desde 2026-11-21; atualiza sozinho a cada push na main).
 - A máquina **não tem Node nem Python** instalados.
@@ -42,7 +43,7 @@ Este arquivo é lido automaticamente pelo Claude no início de cada sessão.
 ```
 index.html            página (importmap, HUD + barra do chefão, telas: inicial, seleção, painel, vitória, derrota; controles de toque)
 styles.css            estilos da interface
-src/main.js           inicialização, estados (inicio/selecao/jogando/caindo/vitoria/derrota), loop, HUD
+src/main.js           inicialização, estados (inicio/selecao/jogando/pausado/caindo/vitoria/derrota), menu, pausa, salvar/continuar, loop, HUD
 src/entrada.js        teclado, mouse e toque (joystick virtual, botões Atacar/Pular)
 src/camera.js         câmera em terceira pessoa (distancia, inclinacao, alturaAlvo)
 src/personagens.js    PERSONAGENS: 4 heróis (atributos 1–5 do GDD, tipo de ataque, modelo low-poly)
@@ -50,6 +51,8 @@ src/jogador.js        jogador com o herói escolhido: movimento, pulo, ataques (
 src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
 src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
 src/chefao.js         chefão Guardião da Floresta (ciclo golpe/investida/bolas → cansado; entra no GerenciadorInimigos via inimigos.adicionar)
+src/salvamento.js     jogo salvo (Continuar) e recordes por fase (localStorage)
+src/configuracoes.js  configurações (volumes, câmera, gráficos) salvas no aparelho; configuracoes.aoMudar(f)
 src/estatisticas.js   painel do jogo: partidas/vitórias/derrotas/recordes salvos no aparelho (localStorage)
 src/contagem.js       contagem ONLINE anônima (Firebase REST); endereço do banco em src/config-online.js (vazio = desligada)
 painel.html           painel online (aparelhos, partidas por dia, heróis...); ?demo=1 = dados de exemplo; ver docs/CONTAGEM_ONLINE.md

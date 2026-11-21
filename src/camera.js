@@ -8,13 +8,16 @@ export class CameraSeguidora {
     this.inclinacao = 0.45; // giro vertical (rad)
     this.distancia = 9;
     this.alturaAlvo = 1.3;  // altura do ponto para onde a câmera olha (acima dos pés)
+    this.sensibilidade = 1; // Configurações: 0,4–2
+    this.inverterY = false;
     this.alvo = new THREE.Vector3();
     this._desejada = new THREE.Vector3();
   }
 
   aplicarGiro(dx, dy) {
-    this.angulo -= dx * 0.006;
-    this.inclinacao = THREE.MathUtils.clamp(this.inclinacao + dy * 0.004, 0.1, 1.2);
+    this.angulo -= dx * 0.006 * this.sensibilidade;
+    const vertical = dy * 0.004 * this.sensibilidade * (this.inverterY ? -1 : 1);
+    this.inclinacao = THREE.MathUtils.clamp(this.inclinacao + vertical, 0.1, 1.2);
   }
 
   /** Vetores frente/direita no plano do chão, relativos à câmera. */

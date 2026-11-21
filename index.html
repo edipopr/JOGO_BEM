@@ -39,14 +39,20 @@
   <div id="tela-inicial" class="tela">
     <h1>Guizinho</h1>
     <h2>A Invasão do Pesadelo</h2>
-    <button id="btn-jogar">Jogar</button>
-    <div class="botoes">
-      <button id="btn-painel" class="secundario">📊 Painel</button>
-      <button id="btn-instalar" class="secundario oculto">📲 Instalar app</button>
+    <div class="menu">
+      <button id="btn-continuar" class="oculto">▶ Continuar<small id="info-continuar"></small></button>
+      <button id="btn-jogar">Novo jogo</button>
+      <div class="botoes">
+        <button id="btn-personagens" class="secundario">🦸 Personagens</button>
+        <button id="btn-config" class="secundario">⚙️ Configurações</button>
+        <button id="btn-painel" class="secundario">📊 Painel</button>
+        <button id="btn-instalar" class="secundario oculto">📲 Instalar app</button>
+      </div>
     </div>
+    <p id="recorde-fase" class="recorde-fase oculto"></p>
     <p id="dica-ios" class="dica-tela oculto">Para instalar no iPhone/iPad: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</p>
-    <p class="dica-tela">Atravesse a Floresta dos Amigos, pegue os cristais, ache as 3 estrelas escondidas e chegue ao portal!</p>
-    <p class="versao">Protótipo — Fase 5 · versão <span id="versao"></span></p>
+    <p class="dica-tela">Atravesse a Floresta dos Amigos, pegue os cristais, ache as 3 estrelas escondidas e purifique o Guardião!</p>
+    <p class="versao">Protótipo — Fase 6 · versão <span id="versao"></span></p>
   </div>
 
   <div id="tela-selecao" class="tela tela-selecao oculto">
@@ -56,6 +62,40 @@
     <div class="botoes">
       <button id="btn-voltar" class="secundario">Voltar</button>
       <button id="btn-comecar">Começar!</button>
+      <button id="btn-pronto" class="oculto">Pronto ✔</button>
+    </div>
+  </div>
+
+  <div id="tela-pausa" class="tela oculto">
+    <h1>Pausado</h1>
+    <button id="btn-retomar">▶ Continuar</button>
+    <div class="botoes">
+      <button id="btn-pausa-config" class="secundario">⚙️ Configurações</button>
+      <button id="btn-pausa-recomecar" class="secundario">↺ Recomeçar a fase</button>
+      <button id="btn-pausa-sair" class="secundario">🏠 Sair para o menu</button>
+    </div>
+    <p class="dica-tela">Seu progresso fica salvo no último checkpoint.</p>
+  </div>
+
+  <div id="tela-config" class="tela oculto">
+    <h3 class="titulo-tela">⚙️ Configurações</h3>
+    <div class="config">
+      <label>🎵 Música <input type="range" id="cfg-musica" min="0" max="100" step="5"><output id="saida-musica"></output></label>
+      <label>💥 Efeitos <input type="range" id="cfg-efeitos" min="0" max="100" step="5"><output id="saida-efeitos"></output></label>
+      <label>🎥 Giro da câmera <input type="range" id="cfg-sensibilidade" min="40" max="200" step="10"><output id="saida-sensibilidade"></output></label>
+      <label class="config-caixa"><input type="checkbox" id="cfg-inverter"> Inverter câmera (cima/baixo)</label>
+      <div class="config-opcoes">
+        <span>✨ Gráficos</span>
+        <div class="segmentado" id="cfg-qualidade">
+          <button data-valor="baixa">Leve</button>
+          <button data-valor="media">Médio</button>
+          <button data-valor="alta">Bonito</button>
+        </div>
+      </div>
+    </div>
+    <div class="botoes">
+      <button id="btn-apagar-progresso" class="secundario perigo">Apagar progresso</button>
+      <button id="btn-config-voltar">Voltar</button>
     </div>
   </div>
 
@@ -67,6 +107,7 @@
     </div>
     <div class="botoes">
       <button id="btn-trocar-vitoria" class="secundario">Trocar herói</button>
+      <button id="btn-menu-vitoria" class="secundario">🏠 Menu</button>
       <button id="btn-de-novo">Jogar de novo</button>
     </div>
   </div>
@@ -98,6 +139,7 @@
     <div class="botoes">
       <button id="btn-trocar-derrota" class="secundario">Trocar herói</button>
       <button id="btn-recomecar" class="secundario">Recomeçar a fase</button>
+      <button id="btn-menu-derrota" class="secundario">🏠 Menu</button>
     </div>
   </div>
 
@@ -108,6 +150,7 @@
   </div>
 
   <button id="btn-som" class="btn-som" aria-label="Som">🔊</button>
+  <button id="btn-pausa" class="btn-pausa oculto" aria-label="Pausar">⏸</button>
 
   <div id="girar" class="girar">
     <div class="celular-girando">📱</div>

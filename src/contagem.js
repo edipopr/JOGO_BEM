@@ -31,7 +31,8 @@ function hoje() {
 
 class Contagem {
   constructor() {
-    this.ligada = !!URL_BANCO;
+    // localhost = testes no PC (não conta); celular na rede de casa (192.168...) e o site contam normalmente
+    this.ligada = !!URL_BANCO && !['localhost', '127.0.0.1'].includes(location.hostname);
     this.id = lerOuCriar(CHAVE_ID, novoId).replace(/[^a-zA-Z0-9-]/g, '').slice(0, 36);
     this.primeiraVez = Number(lerOuCriar(CHAVE_PRIMEIRA, () => Date.now()));
   }

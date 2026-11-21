@@ -75,6 +75,19 @@ export class GerenciadorItens {
     }
   }
 
+  /** Índices dos itens já coletados (para salvar). */
+  coletados() {
+    return this.lista.flatMap((item, i) => (item.ativo ? [] : [i]));
+  }
+
+  /** Esconde os itens já coletados numa partida salva. */
+  restaurar(indices = []) {
+    for (const i of indices) {
+      const item = this.lista[i];
+      if (item) { item.ativo = false; item.malha.visible = false; }
+    }
+  }
+
   /** aoColetar(tipo) é chamado quando o jogador pega um item. */
   atualizar(dt, jogador, particulas, aoColetar) {
     this.tempo += dt;
@@ -119,6 +132,21 @@ export class Checkpoints {
       return { posicao: p.clone(), grupo, bandeira, ativo: false };
     });
     this.tempo = 0;
+    this.ultimo = -1; // índice do último checkpoint tocado
+  }
+
+  /** Índices dos checkpoints ativos (para salvar). */
+  ativos() {
+    return this.lista.flatMap((c, i) => (c.ativo ? [i] : []));
+  }
+
+  /** Reacende checkpoints de uma partida salva. */
+  restaurar(indices = [], ultimo = -1) {
+    for (const i of indices) {
+      const c = this.lista[i];
+      if (c) { c.ativo = true; c.bandeira.material = MAT_BANDEIRA_ON; }
+    }
+    this.ultimo = ultimo;
   }
 
   reiniciar() {
@@ -126,6 +154,7 @@ export class Checkpoints {
       c.ativo = false;
       c.bandeira.material = MAT_BANDEIRA_OFF;
     }
+    this.ultimo = -1;
   }
 
   /** aoAtivar(posicao) é chamado quando o jogador toca um checkpoint novo. */
@@ -138,6 +167,7 @@ export class Checkpoints {
       if (dx * dx + dz * dz < 1.6 * 1.6 && Math.abs(jogador.posicao.y - c.posicao.y) < 2) {
         c.ativo = true;
         c.bandeira.material = MAT_BANDEIRA_ON;
+        this.ultimo = this.lista.indexOf(c);
         particulas.explosao(c.posicao.clone().setY(c.posicao.y + 2), 0xff8a1f, 18, 5);
         aoAtivar(c.posicao);
       }

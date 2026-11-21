@@ -16,6 +16,7 @@ const log = (m) => { linhas.push(m); document.getElementById('log').textContent 
 f.addEventListener('load', () => {
   const w = f.contentWindow, d = f.contentDocument;
   w.addEventListener('error', (e) => log('ERRO: ' + e.message));
+  w.confirm = () => true; // os testes aceitam as perguntas (ex.: substituir jogo salvo)
   const tecla = (tipo, code) => w.dispatchEvent(new w.KeyboardEvent(tipo, { code, bubbles: true }));
   const g = () => w.guizinhoDebug;
   // Avança o jogo manualmente (o headless quase não gera quadros de animação)

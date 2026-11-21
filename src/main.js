@@ -15,12 +15,15 @@ import { som } from './audio.js';
 import { estatisticas } from './estatisticas.js';
 import { contagem } from './contagem.js';
 import { Chefao } from './chefao.js';
+import { configuracoes } from './configuracoes.js';
+import { salvamento } from './salvamento.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
-configurarApp({ podeRecarregar: () => estado !== 'jogando' && estado !== 'caindo' });
+configurarApp({ podeRecarregar: () => !['jogando', 'caindo', 'pausado'].includes(estado) });
 document.getElementById('versao').textContent = VERSAO;
 
 const PONTOS = { cristal: 10, estrela: 100 };
+const FASE_ID = 'floresta'; // chave da fase no salvamento
 const CHAVE_PERSONAGEM = 'guizinho.personagem';
 
 function lerPersonagemSalvo() {
@@ -70,7 +73,7 @@ cameraSeguidora.atualizar(jogador.posicao, 0, true);
 const $ = (id) => document.getElementById(id);
 const telas = {
   inicial: $('tela-inicial'), selecao: $('tela-selecao'), vitoria: $('tela-vitoria'), derrota: $('tela-derrota'),
-  painel: $('tela-painel'),
+  painel: $('tela-painel'), pausa: $('tela-pausa'), config: $('tela-config'),
 };
 const hud = $('hud');
 const controlesToque = $('controles-toque');
@@ -79,7 +82,7 @@ $('dica').textContent = ehToque
   : 'WASD: mover · Espaço: pular · J: atacar · Shift: correr · Arraste o mouse: girar câmera';
 
 // ----- Estado da partida -----
-// estado: 'inicio' | 'selecao' | 'jogando' | 'caindo' (animação de derrota) | 'vitoria' | 'derrota'
+// estado: 'inicio' | 'selecao' | 'jogando' | 'pausado' | 'caindo' (animação de derrota) | 'vitoria' | 'derrota'
 let estado = 'inicio';
 let tempoAnimacao = 0;
 let tempoMensagem = 0;
@@ -108,9 +111,11 @@ function mostrarTela(nome) {
   const emJogo = nome === null;
   hud.classList.toggle('oculto', !emJogo);
   controlesToque.classList.toggle('oculto', !(emJogo && ehToque));
+  $('btn-pausa').classList.toggle('oculto', !emJogo);
+  if (nome === 'inicial') atualizarMenu();
   // Música de cada tela (durante a partida a música depende da área — ver passo())
-  if (nome === 'inicial' || nome === 'selecao' || nome === 'painel') som.musica('menu');
-  else if (nome === 'vitoria' || nome === 'derrota') som.musica(null);
+  if (['inicial', 'selecao', 'painel'].includes(nome)) som.musica('menu');
+  else if (['vitoria', 'derrota', 'pausa'].includes(nome)) som.musica(null);
 }
 
 function mostrarMensagem(texto, segundos = 1.5) {
@@ -175,8 +180,11 @@ function escolherPersonagem(id) {
   $('descricao-personagem').textContent = PERSONAGENS[jogador.id].descricao;
 }
 
-function abrirSelecao() {
+/** modo 'jogar' = botão Começar; modo 'escolher' (menu Personagens) = botão Pronto, volta ao menu. */
+function abrirSelecao(modo = 'jogar') {
   estado = 'selecao';
+  $('btn-comecar').classList.toggle('oculto', modo !== 'jogar');
+  $('btn-pronto').classList.toggle('oculto', modo === 'jogar');
   jogador.reiniciar(true);
   escolherPersonagem(jogador.id);
   cameraSeguidora.distancia = 6;
@@ -187,26 +195,74 @@ function abrirSelecao() {
 }
 
 // ----- Partida -----
+/** Zera a fase (itens, checkpoints, inimigos, chefão, pontos). */
+function zerarFase() {
+  Object.assign(partida, { cristais: 0, estrelas: 0, pontos: 0, tempo: 0 });
+  avisosVistos.clear();
+  itens.reiniciar();
+  checkpoints.reiniciar();
+  inimigos.reiniciar();
+  registrado.tempo = 0;
+  registrado.inimigos = 0;
+  tempoAbrirPortal = 0;
+}
+
+/** voltarAoInicio: true = partida nova do zero; false = "Tentar de novo" do último checkpoint. */
 function comecarPartida(voltarAoInicio) {
   if (voltarAoInicio) {
-    Object.assign(partida, { cristais: 0, estrelas: 0, pontos: 0, tempo: 0 });
-    avisosVistos.clear();
-    itens.reiniciar();
-    checkpoints.reiniciar();
-    inimigos.reiniciar();
-    registrado.tempo = 0;
-    registrado.inimigos = 0;
-    tempoAbrirPortal = 0;
+    zerarFase();
+    salvamento.apagarPartida();
     estatisticas.comecou(jogador.id);
     contagem.comecou();
+    entrarNoJogo(fase.pontoInicial);
   } else {
     estatisticas.tentouDeNovo();
     contagem.tentouDeNovo();
     chefao.reiniciarLuta(); // chefão volta a dormir com vida cheia (se ainda não foi derrotado)
+    entrarNoJogo(null);
   }
+}
+
+/** "Continuar" do menu: monta a fase como estava no salvamento e volta ao último checkpoint. */
+function continuarPartida() {
+  const s = salvamento.partida();
+  if (!s) return;
+  zerarFase();
+  Object.assign(partida, { cristais: s.cristais, estrelas: s.estrelas, pontos: s.pontos, tempo: s.tempo });
+  for (const i of s.avisos || []) if (fase.avisos[i]) avisosVistos.add(fase.avisos[i]);
+  itens.restaurar(s.itens);
+  checkpoints.restaurar(s.checkpoints, s.checkpoint);
+  inimigos.pontos = s.pontosInimigos || 0;
+  inimigos.derrotados = s.derrotados || 0;
+  if (s.chefaoDerrotado) chefao.purificarDireto();
+  registrado.tempo = partida.tempo;
+  registrado.inimigos = inimigos.derrotados;
+  estatisticas.comecou(jogador.id);
+  contagem.comecou();
+  entrarNoJogo(fase.checkpoints[s.checkpoint] || fase.pontoInicial);
+  mostrarMensagem('Bem-vindo de volta!', 2);
+}
+
+/** Guarda a partida em andamento (para o botão Continuar). */
+function salvarProgresso() {
+  if (!['jogando', 'pausado', 'caindo', 'derrota'].includes(estado)) return;
+  salvamento.salvarPartida({
+    fase: FASE_ID,
+    checkpoints: checkpoints.ativos(), checkpoint: checkpoints.ultimo,
+    itens: itens.coletados(),
+    cristais: partida.cristais, estrelas: partida.estrelas, pontos: partida.pontos, tempo: partida.tempo,
+    pontosInimigos: inimigos.pontos, derrotados: inimigos.derrotados,
+    chefaoDerrotado: chefao.derrotado,
+    avisos: [...avisosVistos].map((a) => fase.avisos.indexOf(a)),
+  });
+}
+
+/** Coloca o herói no jogo. pontoRenascer = onde aparecer (null = último checkpoint/renascimento). */
+function entrarNoJogo(pontoRenascer) {
+  if (pontoRenascer) jogador.pontoRenascer.copy(pontoRenascer);
   portal.abrir(chefao.derrotado);
   projeteis.limpar();
-  jogador.reiniciar(voltarAoInicio);
+  jogador.reiniciar(false);
   cameraSeguidora.distancia = 9;
   cameraSeguidora.inclinacao = 0.45;
   cameraSeguidora.alturaAlvo = 1.3;
@@ -234,12 +290,14 @@ function aoColetar(tipo) {
     jogador.curar();
     pulsar($('coracoes'));
   }
+  salvarProgresso();
 }
 
 function aoAtivarCheckpoint(posicao) {
   jogador.pontoRenascer.copy(posicao);
   som.efeito('checkpoint');
   mostrarMensagem('Checkpoint!', 1.5);
+  salvarProgresso();
 }
 
 let tempoAbrirPortal = 0;
@@ -251,6 +309,7 @@ chefao.avisar = (evento, texto) => {
   else if (evento === 'derrotado') {
     mostrarMensagem('Você purificou o Guardião! O portal se abriu!', 4);
     tempoAbrirPortal = 2.6; // o portal aparece depois da purificação (ver passo())
+    salvarProgresso();
   }
 };
 
@@ -274,12 +333,20 @@ function vencer() {
   ];
   $('objetivos').innerHTML = metas.map(([texto, ok]) =>
     `<li class="${ok ? '' : 'falhou'}"><span class="estrela-meta">★</span>${texto}</li>`).join('');
+  // Recordes da fase (salvos no aparelho) — a partida em andamento acabou
+  const antes = salvamento.recordes(FASE_ID);
+  salvamento.registrarVitoria(FASE_ID, {
+    pontos: pontosTotais(), tempo: partida.tempo, estrelas: partida.estrelas, todosCristais: partida.cristais === totalCristais,
+  });
+  salvamento.apagarPartida();
+  const novoRecorde = !antes || pontosTotais() > antes.melhorPontos;
   const min = Math.floor(partida.tempo / 60), seg = Math.floor(partida.tempo % 60);
   $('resumo').innerHTML = `
     <span>Herói</span><b>${jogador.personagem.nome}</b>
     <span>Inimigos derrotados</span><b>${inimigos.derrotados}</b>
     <span>Tempo</span><b>${min}:${String(seg).padStart(2, '0')}</b>
-    <span>Pontos</span><b>${pontosTotais()}</b>`;
+    <span>Pontos</span><b>${pontosTotais()}</b>
+    ${novoRecorde ? '<span>🏆 Novo recorde!</span><b>' + pontosTotais() + '</b>' : `<span>Recorde</span><b>${antes.melhorPontos}</b>`}`;
   registrarFim('vitoria');
   mostrarTela('vitoria');
   som.efeito('vitoria');
@@ -313,14 +380,123 @@ async function prepararTelaCelular() {
 }
 $('btn-girar-ignorar').addEventListener('click', () => document.body.classList.add('ignorar-orientacao'));
 
+// ----- Menu principal -----
+const relogioTexto = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+function atualizarMenu() {
+  const s = salvamento.partida();
+  $('btn-continuar').classList.toggle('oculto', !s);
+  $('btn-jogar').classList.toggle('secundario', !!s); // com jogo salvo, "Continuar" vira o botão principal
+  if (s) {
+    const onde = s.checkpoint >= 0 ? `checkpoint ${s.checkpoint + 1}` : 'início';
+    $('info-continuar').textContent = `${fase.nome} · ${onde} · ◆ ${s.cristais}/${totalCristais} · ★ ${s.estrelas}/${totalEstrelas} · ${relogioTexto(s.tempo)}`;
+  }
+  const r = salvamento.recordes(FASE_ID);
+  $('recorde-fase').classList.toggle('oculto', !r);
+  if (r) {
+    $('recorde-fase').innerHTML = `${fase.nome}: <b>✔ concluída</b> · ★ ${r.maxEstrelas}/${totalEstrelas}`
+      + `${r.todosCristais ? ' · ◆ todos' : ''} · recorde <b>${r.melhorPontos} pts</b> · melhor tempo ${relogioTexto(r.melhorTempo)}`;
+  }
+}
+
+function irParaMenu() {
+  salvarProgresso();
+  estado = 'inicio';
+  mostrarTela('inicial');
+}
+
+// ----- Pausa -----
+function pausar() {
+  if (estado !== 'jogando') return;
+  estado = 'pausado';
+  salvarProgresso();
+  mostrarTela('pausa');
+}
+function retomar() {
+  if (estado !== 'pausado') return;
+  estado = 'jogando';
+  mostrarTela(null);
+  entrada.consumirPulo();
+  entrada.consumirAtaque();
+}
+// App foi para segundo plano (ligação, trocou de app...): pausa e salva
+document.addEventListener('visibilitychange', () => { if (document.hidden) { pausar(); salvarProgresso(); } });
+window.addEventListener('pagehide', salvarProgresso);
+
+// ----- Configurações -----
+let voltarDaConfig = 'inicial';
+function abrirConfig(origem) {
+  voltarDaConfig = origem;
+  mostrarTela('config');
+}
+function aplicarQualidade(qualidade) {
+  const sombras = qualidade !== 'baixa';
+  const tipo = qualidade === 'alta' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  const nitidez = { alta: 2, media: 1.25, baixa: 1 }[qualidade] || 2;
+  renderizador.setPixelRatio(Math.min(window.devicePixelRatio, nitidez));
+  renderizador.setSize(window.innerWidth, window.innerHeight);
+  if (renderizador.shadowMap.enabled !== sombras || renderizador.shadowMap.type !== tipo) {
+    renderizador.shadowMap.enabled = sombras;
+    renderizador.shadowMap.type = tipo;
+    // os materiais precisam ser recompilados para ligar/desligar as sombras
+    cena.traverse((o) => { for (const m of [].concat(o.material || [])) m.needsUpdate = true; });
+  }
+}
+configuracoes.aoMudar((c) => {
+  som.definirVolumes(c.musica / 100, c.efeitos / 100);
+  cameraSeguidora.sensibilidade = c.sensibilidade / 100;
+  cameraSeguidora.inverterY = c.inverterY;
+  aplicarQualidade(c.qualidade);
+  $('cfg-musica').value = c.musica; $('saida-musica').textContent = `${c.musica}%`;
+  $('cfg-efeitos').value = c.efeitos; $('saida-efeitos').textContent = `${c.efeitos}%`;
+  $('cfg-sensibilidade').value = c.sensibilidade; $('saida-sensibilidade').textContent = `${c.sensibilidade}%`;
+  $('cfg-inverter').checked = c.inverterY;
+  for (const b of $('cfg-qualidade').querySelectorAll('button')) b.classList.toggle('ativo', b.dataset.valor === c.qualidade);
+});
+for (const nome of ['musica', 'efeitos', 'sensibilidade']) {
+  $(`cfg-${nome}`).addEventListener('input', (e) => configuracoes.definir(nome, Number(e.target.value)));
+}
+$('cfg-efeitos').addEventListener('change', () => som.efeito('cristal')); // amostra do volume
+$('cfg-inverter').addEventListener('change', (e) => configuracoes.definir('inverterY', e.target.checked));
+for (const b of $('cfg-qualidade').querySelectorAll('button')) {
+  b.addEventListener('click', () => configuracoes.definir('qualidade', b.dataset.valor));
+}
+$('btn-config-voltar').addEventListener('click', () => mostrarTela(voltarDaConfig));
+$('btn-apagar-progresso').addEventListener('click', () => {
+  if (confirm('Apagar o jogo salvo e os recordes deste aparelho?')) {
+    salvamento.apagarTudo();
+    $('btn-apagar-progresso').textContent = 'Apagado ✔';
+    setTimeout(() => { $('btn-apagar-progresso').textContent = 'Apagar progresso'; }, 2000);
+  }
+});
+
+atualizarMenu(); // ao abrir o jogo
+
+// ----- Botões -----
 montarCartoes();
-$('btn-jogar').addEventListener('click', () => { prepararTelaCelular(); abrirSelecao(); });
+$('btn-jogar').addEventListener('click', () => {
+  if (salvamento.partida() && !confirm('Começar um jogo novo? O jogo salvo será substituído.')) return;
+  prepararTelaCelular();
+  abrirSelecao('jogar');
+});
+$('btn-continuar').addEventListener('click', () => { prepararTelaCelular(); continuarPartida(); });
+$('btn-personagens').addEventListener('click', () => abrirSelecao('escolher'));
+$('btn-pronto').addEventListener('click', () => { estado = 'inicio'; mostrarTela('inicial'); });
+$('btn-config').addEventListener('click', () => abrirConfig('inicial'));
 $('btn-comecar').addEventListener('click', () => {
   comecarPartida(true);
   $('dica').classList.remove('oculto');
   setTimeout(() => $('dica').classList.add('oculto'), 8000);
 });
 $('btn-voltar').addEventListener('click', () => { estado = 'inicio'; mostrarTela('inicial'); });
+$('btn-pausa').addEventListener('click', pausar);
+$('btn-retomar').addEventListener('click', retomar);
+$('btn-pausa-config').addEventListener('click', () => abrirConfig('pausa'));
+$('btn-pausa-recomecar').addEventListener('click', () => {
+  if (confirm('Recomeçar a fase do começo?')) comecarPartida(true);
+});
+$('btn-pausa-sair').addEventListener('click', irParaMenu);
+$('btn-menu-vitoria').addEventListener('click', irParaMenu);
+$('btn-menu-derrota').addEventListener('click', irParaMenu);
 $('btn-painel').addEventListener('click', () => { estatisticas.mostrar($); mostrarTela('painel'); });
 $('btn-painel-voltar').addEventListener('click', () => mostrarTela('inicial'));
 $('btn-painel-zerar').addEventListener('click', () => {
@@ -338,7 +514,7 @@ window.addEventListener('resize', () => {
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console
-window.guizinhoDebug = { jogador, inimigos, chefao, portal, fase, som, contagem, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
+window.guizinhoDebug = { jogador, inimigos, chefao, portal, fase, som, contagem, salvamento, itens, checkpoints, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
 
 // ----- Loop principal -----
 const relogio = new THREE.Clock();
@@ -361,6 +537,14 @@ function quadro() {
 }
 
 function passo(dt, desenhar = true) {
+  const pediuPausa = entrada.consumirPausa(); // Esc ou P
+  if (pediuPausa && estado === 'jogando') pausar();
+  else if (pediuPausa && estado === 'pausado') { retomar(); return; }
+  if (estado === 'pausado') { // tudo congelado: só desenha
+    entrada.consumirGiro();
+    if (desenhar) renderizador.render(cena, camera);
+    return;
+  }
   fase.atualizar(dt, corpos, jogador.posicao);
 
   if (estado === 'jogando' || estado === 'caindo') {

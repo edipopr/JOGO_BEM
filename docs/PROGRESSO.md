@@ -2,7 +2,7 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 5 concluída (chefão Guardião da Floresta) + ajustes pedidos: 5 vidas, mira automática, tela de vitória no celular deitado, painel de partidas
+- **Fase atual:** Fase 6 concluída (menu principal, pausa, salvamento, configurações)
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/ (versão aparece na tela inicial)
 - **Aguardando retorno do usuário:**
   - Dificuldade do chefão (9 de vida, 3 golpes por cansaço; ajustar VIDA/DANO_POR_CANSACO/TEMPO_VULNERAVEL em `src/chefao.js`)
@@ -10,7 +10,7 @@
   - Se o botão "Jogar de novo" aparece no celular deitado
   - **Contagem online LIGADA** (banco guizinho-3685f, Firebase). Painel: https://edipopr.github.io/JOGO_BEM/painel.html. Há 1 aparelho de teste "teste-claude" que o usuário pode apagar no console
   - Volume/qualidade dos sons e da música (Claude não consegue ouvir)
-- **Próximo passo:** **Fase 6 — Menus e salvamento** (menu principal com Continuar, pausa com Esc, salvar progresso e configurações).
+- **Próximo passo:** Fase 7 está quase toda feita (falta só testar em vários aparelhos, com o usuário). Sugestão: **Fase 8 — habilidades especiais (tecla K / botão na tela)**: dash de energia, onda de cores, campo tecnológico, tiro de canhão.
 - **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
 
 ## Fases
@@ -68,11 +68,14 @@
 - [x] Painel do jogo (botão 📊 na tela inicial): partidas, vitórias, derrotas, tempo, recordes, partidas por herói, últimas 10 — salvo no aparelho
 - [x] Contagem online anônima (Firebase) + painel online em `painel.html` (aparelhos, partidas por dia, quem voltou a jogar, heróis, últimas partidas) — ligada em 2026-11-21 (projeto Firebase guizinho-3685f)
 
-### Fase 6 — Menus, áudio e salvamento
-- [ ] Menu principal (Novo jogo, Continuar, Personagens, Configurações)
-- [ ] Pausa (Esc)
+### Fase 6 — Menus, áudio e salvamento ✅
+- [x] Menu principal: Continuar (mostra fase, checkpoint, cristais, estrelas e tempo), Novo jogo (pergunta antes de substituir o jogo salvo), Personagens, Configurações, Painel; linha de recordes da fase
+- [x] Pausa: Esc/P ou botão ⏸; pausa sozinha quando o app vai para segundo plano; Continuar, Configurações, Recomeçar a fase, Sair para o menu
 - [x] Música e efeitos sonoros (Web Audio) — adiantado
-- [ ] Salvamento local (progresso e configurações)
+- [x] Salvamento local (`src/salvamento.js`): checkpoints, itens coletados, pontos, tempo, chefão derrotado; salva em checkpoint, coleta, pausa, derrota, saída e segundo plano; vitória apaga o jogo salvo e grava recordes ("Novo recorde!" na vitória)
+- [x] Configurações (`src/configuracoes.js`): volume da música e dos efeitos, giro da câmera, inverter câmera, gráficos Leve/Médio/Bonito (sombras e nitidez; celular começa no Médio), apagar progresso
+- [x] Botão 🏠 Menu nas telas de vitória e derrota
+- [x] Contagem online desligada em `localhost` (testes não sujam os números)
 
 ### Extras feitos fora de ordem (pedidos do usuário)
 - [x] Áudio (adiantado da Fase 6): trilha sintetizada (menu, floresta, bosque) e efeitos (pulo, trampolim, 4 ataques, explosão, acerto, inimigo derrotado, cuspe, dano, cristal, estrela, coração, checkpoint, botão, vitória, derrota); botão 🔊/🔇
@@ -108,3 +111,4 @@
 - **2026-11-21:** Correção da atualização no celular (cache do GitHub Pages + app aberto em segundo plano): versão visível, atualização automática, ferramentas/nova_versao.sh. Troca de herói testada com toque emulado (funciona; problema era versão misturada no cache).
 - **2026-11-21:** Trilha sonora e efeitos sintetizados; orientação horizontal no celular (aviso, trava, manifest).
 - **2026-11-21:** Ajustes (5 vidas, mira automática, tela de vitória deitada, painel de partidas) e Fase 5 (chefão Guardião da Floresta).
+- **2026-11-21:** Contagem online (Firebase) + painel online; Fase 6 (menu, pausa, salvamento, configurações).

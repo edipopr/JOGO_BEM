@@ -54,6 +54,8 @@ class Audio {
     try { this.mudo = localStorage.getItem(CHAVE_MUDO) === '1'; } catch { /* sem armazenamento */ }
     this.musicaAtual = null;
     this.ultimoEfeito = {};
+    this.volumeMusica = 1;  // 0–1 (Configurações)
+    this.volumeEfeitos = 1;
   }
 
   /** Cria o áudio (precisa acontecer dentro de um toque/clique do jogador). */
@@ -66,10 +68,10 @@ class Audio {
     this.mestre.gain.value = this.mudo ? 0 : 0.8;
     this.mestre.connect(this.ctx.destination);
     this.canalMusica = this.ctx.createGain();
-    this.canalMusica.gain.value = 0.35;
+    this.canalMusica.gain.value = 0.35 * this.volumeMusica;
     this.canalMusica.connect(this.mestre);
     this.canalEfeitos = this.ctx.createGain();
-    this.canalEfeitos.gain.value = 0.7;
+    this.canalEfeitos.gain.value = 0.7 * this.volumeEfeitos;
     this.canalEfeitos.connect(this.mestre);
 
     // Ruído branco (para batidas, explosões e sopros)
@@ -90,6 +92,15 @@ class Audio {
     try { localStorage.setItem(CHAVE_MUDO, this.mudo ? '1' : '0'); } catch { /* tudo bem */ }
     if (this.mestre) this.mestre.gain.setTargetAtTime(this.mudo ? 0 : 0.8, this.ctx.currentTime, 0.05);
     return this.mudo;
+  }
+
+  /** Volumes de 0 a 1 (tela de Configurações). */
+  definirVolumes(musica, efeitos) {
+    this.volumeMusica = musica;
+    this.volumeEfeitos = efeitos;
+    if (!this.ctx) return;
+    this.canalMusica.gain.setTargetAtTime(0.35 * musica, this.ctx.currentTime, 0.05);
+    this.canalEfeitos.gain.setTargetAtTime(0.7 * efeitos, this.ctx.currentTime, 0.05);
   }
 
   // ---------- Peças básicas ----------

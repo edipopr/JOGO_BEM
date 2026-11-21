@@ -166,6 +166,19 @@ export class Chefao {
     if (fechar) b.malha.scale.y = 0.01; // cresce em _atualizarVisual
   }
 
+  /** Já começa purificado (partida salva depois de derrotá-lo): verde, parado, arena aberta. */
+  purificarDireto() {
+    this.derrotado = true;
+    this.ativo = false;
+    this.vida = 0;
+    this.posicao.copy(this.centroArena);
+    this._mudar('purificado');
+    this._fecharArena(false);
+    this.m.matCopa.color.setHex(COR.copaSaudavel);
+    this.m.matOlho.color.setHex(COR.olhoSaudavel);
+    for (const s of this.m.manchas) s.visible = false;
+  }
+
   get acordado() { return this.ativo && this.estado !== 'dormindo'; }
   /** Usado pelo GerenciadorInimigos: > 0 = encostar não machuca. */
   get tempoAtordoado() { return !this.ativo || this.estado === 'dormindo' || this.estado === 'vulneravel' ? 1 : 0; }

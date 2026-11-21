@@ -16,6 +16,7 @@ export class Entrada {
         e.preventDefault();
       }
       if (e.code === 'KeyJ' && !e.repeat) this.ataquePedido = true;
+      if ((e.code === 'Escape' || e.code === 'KeyP') && !e.repeat) this.pausaPedida = true;
       this.teclas.add(e.code);
     });
     window.addEventListener('keyup', (e) => this.teclas.delete(e.code));
@@ -56,6 +57,12 @@ export class Entrada {
     const a = this.ataquePedido;
     this.ataquePedido = false;
     return a;
+  }
+
+  consumirPausa() {
+    const p = !!this.pausaPedida;
+    this.pausaPedida = false;
+    return p;
   }
 
   consumirGiro() {

@@ -264,3 +264,46 @@ html, body {
 .chefao-barra.vulneravel .chefao-vida i { background: linear-gradient(#fff3a0, #ffb02e); }
 @media (max-height: 500px) { .chefao-barra { top: 50px; font-size: 13px; } .chefao-vida { height: 12px; } }
 @media (max-height: 500px) { #mensagem { top: 42%; font-size: 20px; } }
+
+/* ---------- Fase 6: menu, pausa e configurações ---------- */
+.menu { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+#btn-continuar { display: flex; flex-direction: column; align-items: center; line-height: 1.1; background: #4cd137; box-shadow: 0 6px 0 #2a8a1c; }
+#btn-continuar small { font-size: 13px; font-weight: normal; opacity: .95; margin-top: 3px; }
+.recorde-fase { font-size: 15px; background: rgba(0,0,0,.3); padding: 6px 14px; border-radius: 14px; }
+.recorde-fase b { color: #ffd84a; }
+.titulo-tela { font-size: clamp(22px, 5vw, 32px); color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8; }
+.tela button.perigo { background: #e0556f; box-shadow: 0 5px 0 #9c2b40; }
+
+.btn-pausa {
+  position: fixed; top: 56px; right: 68px; z-index: 20;
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: rgba(0,0,0,.35); color: #fff; font-size: 20px; cursor: pointer;
+}
+
+.config {
+  display: flex; flex-direction: column; gap: 12px; width: min(460px, 100%);
+  background: rgba(0,0,0,.35); padding: 16px 18px; border-radius: 18px; text-align: left; font-size: 17px;
+}
+.config label { display: grid; grid-template-columns: 150px 1fr 48px; align-items: center; gap: 10px; }
+.config output { text-align: right; font-weight: bold; color: #ffd84a; }
+.config input[type=range] { width: 100%; accent-color: #ff8a1f; height: 28px; touch-action: pan-x; }
+.config label.config-caixa { display: flex; gap: 10px; cursor: pointer; }
+.config-caixa input { width: 24px; height: 24px; accent-color: #ff8a1f; }
+.config-opcoes { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 10px; }
+.segmentado { display: flex; background: rgba(0,0,0,.35); border-radius: 20px; padding: 3px; }
+.tela .segmentado button {
+  flex: 1; font-size: 15px; padding: 6px 4px; border-radius: 16px;
+  background: transparent; box-shadow: none; font-weight: bold;
+}
+.tela .segmentado button:hover { transform: none; }
+.tela .segmentado button.ativo { background: #ff8a1f; }
+@media (max-width: 520px) {
+  .config label { grid-template-columns: 110px 1fr 40px; font-size: 15px; }
+  .config-opcoes { grid-template-columns: 110px 1fr; font-size: 15px; }
+}
+@media (max-height: 500px) {
+  .config { gap: 6px; padding: 10px 14px; font-size: 15px; }
+  .titulo-tela { font-size: 20px; }
+  #btn-continuar small { font-size: 11px; }
+  .menu { gap: 6px; }
+}
