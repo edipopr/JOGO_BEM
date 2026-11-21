@@ -51,8 +51,8 @@ export function criarFaseTeste(cena) {
   flutuantes.forEach(([x, z, t], i) => bloco(x, z, t, 3, 3, 0.6, cores[i % cores.length]));
   bloco(17, -33, 6.5, 6, 6, 1, 0x8a6bd1); // plataforma de chegada
 
-  // Ilhinha flutuante mais abaixo
-  bloco(17, -44, 0, 10, 8, 2, 0x5ec24a);
+  // Ilhinha flutuante mais abaixo (onde fica o portal de saída)
+  bloco(17, -42, 0, 10, 8, 2, 0x5ec24a);
 
   // ----- Obstáculos variados -----
   bloco(10, 6, 1, 4, 4, 1, 0xff8a1f);
@@ -67,6 +67,7 @@ export function criarFaseTeste(cena) {
     if (Math.hypot(x, z) < 6) continue; // longe do ponto inicial
     if (x > -12 && x < -4 && z < -4) continue; // não bloquear a escada
     if (x > 7 && x < 19 && z > 3 && z < 15) continue;
+    if (x < -20 && z > 20) continue; // canto da estrela escondida
     posicoesArvores.push([x, z]);
   }
   for (const [x, z] of posicoesArvores) {
@@ -101,9 +102,31 @@ export function criarFaseTeste(cena) {
   // ----- Onde nascem as criaturas contaminadas -----
   const inimigos = [
     [7, 0, -9], [-7, 0, 9], [12, 0, -20], [-16, 0, -4], [18, 0, 2],
-    [-8, 3, -28.5], // no mirante
-    [17, 6.5, -33], // na plataforma de chegada
+    [-6.5, 3, -27.5], // no mirante
   ].map(([x, y, z]) => new THREE.Vector3(x, y, z));
 
-  return { caixas, inimigos, pontoInicial: new THREE.Vector3(0, 0, 0) };
+  // ----- Itens (y = altura do chão onde o item flutua) -----
+  const cristais = [
+    [0, 0, -5], [4, 0, -4], [-4, 0, 4], [10, 1, 6], [13, 2, 9], [-14, 1.5, 10], [-10, 0, 10],
+    [8, 0, -14], [15, 0, -8], [-20, 0, -15], [22, 0, 20], [-22, 0, 22],
+    [-8, 0.6, -18], [-8, 1.8, -21.2], [-8, 3, -24.4], // escada
+    [-3, 3.5, -34], [2, 4.5, -38], [7, 5.5, -41], // plataformas flutuantes
+    [15, 6.5, -31], [14, 0, -40], [20, 0, -40], // chegada e ilhinha
+  ];
+  const estrelas = [
+    [16, 3, 12],     // no topo dos blocos coloridos
+    [-25, 0, 25],    // escondida no canto da floresta
+    [12, 6.5, -38],  // na última plataforma flutuante
+  ];
+  const coracoes = [[-6, 0, -12], [19, 6.5, -35]];
+  const itens = [
+    ...cristais.map(([x, y, z]) => ({ tipo: 'cristal', x, y, z })),
+    ...estrelas.map(([x, y, z]) => ({ tipo: 'estrela', x, y, z })),
+    ...coracoes.map(([x, y, z]) => ({ tipo: 'coracao', x, y, z })),
+  ];
+
+  const checkpoints = [[-9.5, 3, -29.5], [17, 6.5, -33]].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+  const portal = new THREE.Vector3(17, 0, -43);
+
+  return { caixas, inimigos, itens, checkpoints, portal, pontoInicial: new THREE.Vector3(0, 0, 0) };
 }

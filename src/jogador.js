@@ -83,18 +83,25 @@ export class Jogador {
     this.atingidos = new Set(); // inimigos já acertados no golpe atual
     this._pontoGolpe = new THREE.Vector3();
     this.pontoInicial = pontoInicial.clone();
-    this.reiniciar();
+    this.pontoRenascer = pontoInicial.clone(); // muda ao tocar num checkpoint
+    this.reiniciar(true);
   }
 
-  /** Volta ao início com vida cheia. */
-  reiniciar() {
+  /** Vida cheia; volta ao último checkpoint, ou ao início da fase se voltarAoInicio. */
+  reiniciar(voltarAoInicio = false) {
+    if (voltarAoInicio) this.pontoRenascer.copy(this.pontoInicial);
     this.vida = VIDA_MAX;
     this.renascer();
+    this.modelo.visible = true;
+  }
+
+  curar() {
+    this.vida = Math.min(VIDA_MAX, this.vida + 1);
   }
 
   /** Volta ao ponto de renascimento (mantém a vida). */
   renascer() {
-    this.posicao.copy(this.pontoInicial);
+    this.posicao.copy(this.pontoRenascer);
     this.velocidade.set(0, 0, 0);
     this.noChao = false;
     this.tempoForaDoChao = 0;

@@ -31,6 +31,10 @@ src/jogador.js    modelo do Guizinho, movimento, pulo, ataque, vida
 src/fisica.js     gravidade e colisão compartilhadas (jogador e inimigos)
 src/inimigo.js    gosmas contaminadas (IA simples) + GerenciadorInimigos (combate)
 src/particulas.js efeitos de partículas
+src/itens.js      cristais, corações, estrelas, checkpoints e portal de saída
+src/pwa.js        registra o service worker e o botão "Instalar app"
+sw.js             service worker (cache offline) — ao criar arquivo novo, adicionar em ARQUIVOS e subir VERSAO
+manifest.webmanifest  dados do app instalável; ícones em icones/ (gerados por ferramentas/gerar_icones.ps1)
 src/camera.js     câmera em terceira pessoa
 src/fase.js       cenário de teste (chão, plataformas, árvores)
 docs/PROGRESSO.md fases de desenvolvimento e onde paramos

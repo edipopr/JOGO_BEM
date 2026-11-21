@@ -2,9 +2,9 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 2 concluída (aguardando teste do usuário)
+- **Fase atual:** Fase 3 concluída + web app instalável (aguardando teste do usuário)
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/
-- **Próximo passo:** testar a Fase 2; depois iniciar a **Fase 3 — Itens e objetivos** (cristais, coração, estrela, checkpoint, telas de vitória/derrota).
+- **Próximo passo:** testar a Fase 3 e a instalação no celular; depois iniciar a **Fase 4 — Floresta dos Amigos** (fase completa com layout próprio, 3 tipos de inimigos, plataformas móveis).
 
 ## Fases
 
@@ -29,11 +29,13 @@
 - [x] Inimigo derrotado com efeito de partículas
 - [x] HUD com corações
 
-### Fase 3 — Itens e objetivos
-- [ ] Cristais coletáveis + contador
-- [ ] Item coração (cura) e estrela (pontos)
-- [ ] Checkpoint
-- [ ] Telas de vitória e derrota
+### Fase 3 — Itens e objetivos ✅
+- [x] 21 cristais coletáveis + contador no placar (10 pts cada)
+- [x] Coração (cura 1, só pega se estiver ferido) e 3 estrelas escondidas (100 pts cada)
+- [x] 2 checkpoints (bandeira cinza → laranja); renascer no último checkpoint
+- [x] Portal de saída na ilhinha → tela de vitória com 3 metas (fase, todos os cristais, todas as estrelas), tempo e pontos
+- [x] Tela de derrota: "Tentar de novo" (último checkpoint) ou "Recomeçar a fase"
+- [x] Gosma derrotada vale 50 pts
 
 ### Fase 4 — Floresta dos Amigos (fase 1 completa)
 - [ ] Layout da fase (caminho, áreas, segredos)
@@ -54,7 +56,7 @@
 
 ### Fase 7 — Publicação da demo
 - [x] GitHub Pages (adiantado): https://edipopr.github.io/JOGO_BEM/
-- [ ] PWA (instalar e jogar offline)
+- [x] PWA (adiantado): manifest, ícones, service worker (offline), botão "Instalar app" e dica para iPhone
 - [ ] Testes em navegadores, celular e tablet
 
 ### Fase 8 — Personagens
@@ -75,3 +77,4 @@
 - **2026-11-21:** Fase 2 implementada (combate, inimigos, vida, partículas; física movida para src/fisica.js).
 - **2026-11-21:** Servidor reescrito para aceitar a rede local (celular); GitHub Pages pendente (repo privado).
 - **2026-11-21:** Repositório tornado público e GitHub Pages ativado.
+- **2026-11-21:** Web app instalável (PWA) e Fase 3 implementada (itens, checkpoints, portal, telas de vitória/derrota).

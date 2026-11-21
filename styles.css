@@ -42,7 +42,26 @@ html, body {
 }
 .tela button:hover { transform: scale(1.05); }
 .tela button:active { transform: translateY(4px); box-shadow: 0 2px 0 #b35500; }
+.tela button.secundario {
+  font-size: 20px; padding: 10px 32px;
+  background: #5ad1ff; box-shadow: 0 5px 0 #2a7fa8;
+}
 .versao { opacity: .7; font-size: 14px; margin-top: 16px; }
+.dica-tela { max-width: 420px; font-size: 16px; opacity: .9; }
+.tela-derrota { background: radial-gradient(circle at 50% 40%, rgba(110, 40, 170, .6), rgba(20, 5, 35, .9)); }
+.tela-derrota h1 { color: #c6ff3d; text-shadow: 0 6px 0 #5a1d9e, 0 10px 20px rgba(0,0,0,.5); }
+
+.objetivos { list-style: none; text-align: left; font-size: clamp(16px, 4vw, 22px); }
+.objetivos li { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.objetivos .estrela-meta { font-size: 1.8em; color: #ffd84a; text-shadow: 0 3px 0 #b37b00; }
+.objetivos li.falhou { opacity: .6; }
+.objetivos li.falhou .estrela-meta { color: rgba(0,0,0,.4); text-shadow: none; }
+.resumo {
+  display: grid; grid-template-columns: auto auto; gap: 4px 18px;
+  background: rgba(0,0,0,.3); padding: 12px 20px; border-radius: 16px;
+  font-size: 16px; margin-bottom: 8px; text-align: left;
+}
+.resumo b { color: #ffd84a; text-align: right; }
 
 /* ---------- HUD ---------- */
 #hud { position: fixed; inset: 0; pointer-events: none; }
@@ -52,6 +71,21 @@ html, body {
   text-shadow: 0 3px 0 #8a0f25, 0 0 8px rgba(0,0,0,.4);
 }
 .coracao.vazio { color: rgba(0,0,0,.35); text-shadow: none; }
+#placar {
+  position: absolute; top: 12px; right: 16px;
+  display: flex; gap: 12px; align-items: center;
+  background: rgba(0,0,0,.35); padding: 6px 14px; border-radius: 20px;
+  font-size: 20px; font-weight: bold;
+}
+.placar-item { display: inline-block; white-space: nowrap; }
+@media (max-width: 520px) {
+  #placar { font-size: 15px; gap: 8px; padding: 5px 10px; }
+  .coracao { font-size: 30px; }
+}
+.icone-cristal { color: #5ad1ff; }
+.icone-estrela { color: #ffd84a; }
+.pulsar { animation: pulsar .35s ease-out; }
+@keyframes pulsar { 50% { transform: scale(1.35); } }
 #mensagem {
   position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
   max-width: calc(100% - 32px); text-align: center;

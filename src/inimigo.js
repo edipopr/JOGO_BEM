@@ -155,6 +155,12 @@ export class Inimigo {
 export class GerenciadorInimigos {
   constructor(cena, pontos) {
     this.lista = pontos.map((p) => new Inimigo(cena, p));
+    this.derrotados = 0;
+  }
+
+  reiniciar() {
+    this.derrotados = 0;
+    for (const ini of this.lista) ini.renascer();
   }
 
   atualizar(dt, jogador, caixas, particulas) {
@@ -172,7 +178,10 @@ export class GerenciadorInimigos {
           const centro = ini.posicao.clone().setY(ini.posicao.y + 0.5);
           const derrotado = ini.receberDano(ini.posicao.x - jogador.posicao.x, ini.posicao.z - jogador.posicao.z);
           particulas.explosao(centro, 0xffd84a, derrotado ? 6 : 8, 4);
-          if (derrotado) particulas.explosao(centro, 0x7a3cff, 22, 6);
+          if (derrotado) {
+            particulas.explosao(centro, 0x7a3cff, 22, 6);
+            this.derrotados++;
+          }
           continue;
         }
       }
