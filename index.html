@@ -36,7 +36,10 @@
     <h1>Guizinho</h1>
     <h2>A Invasão do Pesadelo</h2>
     <button id="btn-jogar">Jogar</button>
-    <button id="btn-instalar" class="secundario oculto">📲 Instalar app</button>
+    <div class="botoes">
+      <button id="btn-painel" class="secundario">📊 Painel</button>
+      <button id="btn-instalar" class="secundario oculto">📲 Instalar app</button>
+    </div>
     <p id="dica-ios" class="dica-tela oculto">Para instalar no iPhone/iPad: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</p>
     <p class="dica-tela">Atravesse a Floresta dos Amigos, pegue os cristais, ache as 3 estrelas escondidas e chegue ao portal!</p>
     <p class="versao">Protótipo — Fase 4 · versão <span id="versao"></span></p>
@@ -54,11 +57,33 @@
 
   <div id="tela-vitoria" class="tela oculto">
     <h1>Vitória!</h1>
-    <ul id="objetivos" class="objetivos"></ul>
-    <div id="resumo" class="resumo"></div>
+    <div class="vitoria-conteudo">
+      <ul id="objetivos" class="objetivos"></ul>
+      <div id="resumo" class="resumo"></div>
+    </div>
     <div class="botoes">
       <button id="btn-trocar-vitoria" class="secundario">Trocar herói</button>
       <button id="btn-de-novo">Jogar de novo</button>
+    </div>
+  </div>
+
+  <div id="tela-painel" class="tela tela-painel oculto">
+    <h3>📊 Painel do jogo</h3>
+    <div id="painel-numeros" class="painel-numeros"></div>
+    <div class="painel-colunas">
+      <div>
+        <h4>Partidas por herói</h4>
+        <div id="painel-herois" class="painel-herois"></div>
+      </div>
+      <div>
+        <h4>Últimas partidas</h4>
+        <ul id="painel-ultimas" class="painel-ultimas"></ul>
+      </div>
+    </div>
+    <p class="dica-tela">Contagem deste aparelho.</p>
+    <div class="botoes">
+      <button id="btn-painel-zerar" class="secundario">Zerar</button>
+      <button id="btn-painel-voltar">Voltar</button>
     </div>
   </div>
 

@@ -7,16 +7,17 @@ import { som } from './audio.js';
 const TEMPO_COYOTE = 0.1;  // ainda pode pular logo após sair da borda
 const BUFFER_PULO = 0.12;  // pulo apertado um pouco antes de tocar o chão
 const ACELERACAO = 40;
-const VIDA_MAX = 3;
+const VIDA_MAX = 5;
 const TEMPO_INVENCIVEL = 1.5;
 const FORCA_TRAMPOLIM = 21;
 
 // Tempos (s) e alcance de cada tipo de ataque. Golpe ativo entre "inicio" e "fim".
+// mira = distância da mira automática (vira para o inimigo mais próximo ao atacar; 0 = sem mira).
 const ATAQUES = {
-  soco: { duracao: 0.3, recarga: 0.4, inicio: 0.05, fim: 0.22, alcance: 0.9, raio: 1.0, passo: 3 },
-  onda: { duracao: 0.45, recarga: 0.9, inicio: 0.1, fim: 0.3, alcance: 0, raio: 2.6, passo: 0 },
-  raio: { duracao: 0.3, recarga: 0.5, inicio: 0.05, fim: 0.22, alcance: 1.8, raio: 1.2, passo: 1 },
-  projetil: { duracao: 0.25, recarga: 0.55, disparo: 0.06, passo: -1.5 },
+  soco: { duracao: 0.3, recarga: 0.35, inicio: 0.04, fim: 0.24, alcance: 1.1, raio: 1.4, passo: 3, mira: 4 },
+  onda: { duracao: 0.45, recarga: 0.7, inicio: 0.08, fim: 0.32, alcance: 0, raio: 3.3, passo: 0, mira: 0 },
+  raio: { duracao: 0.3, recarga: 0.4, inicio: 0.04, fim: 0.24, alcance: 2.4, raio: 1.6, passo: 1, mira: 6 },
+  projetil: { duracao: 0.25, recarga: 0.45, disparo: 0.06, passo: -1.5, mira: 15 },
 };
 
 function criarEfeitos() {
@@ -31,7 +32,7 @@ function criarEfeitos() {
   );
   anel.rotation.x = Math.PI / 2;
   const feixe = new THREE.Mesh(
-    new THREE.BoxGeometry(0.14, 0.14, 2.2),
+    new THREE.BoxGeometry(0.14, 0.14, 3.6),
     new THREE.MeshBasicMaterial({ color: 0x7df9ff, transparent: true, opacity: 0.9 }),
   );
   const clarao = new THREE.Mesh(
@@ -127,6 +128,29 @@ export class Jogador {
     return r;
   }
 
+  /**
+   * Mira automática: o inimigo ativo mais próximo à frente (até ~75° para cada lado)
+   * dentro do alcance do ataque. this.alvos() é definido pelo main (inimigos + chefão).
+   */
+  _mirar() {
+    const alcance = this.ataque.mira;
+    if (!alcance || !this.alvos) return null;
+    const fx = Math.sin(this.angulo), fz = Math.cos(this.angulo);
+    let melhor = null, melhorNota = Infinity;
+    for (const alvo of this.alvos()) {
+      if (!alvo.ativo) continue;
+      const c = alvo.centro();
+      const dx = c.x - this.posicao.x, dz = c.z - this.posicao.z;
+      const dist = Math.hypot(dx, dz) - (alvo.raio || 0);
+      if (dist > alcance || Math.abs(c.y - (this.posicao.y + 0.8)) > 3.5) continue;
+      const cosAng = dist > 0.5 ? (dx * fx + dz * fz) / Math.hypot(dx, dz) : 1;
+      if (cosAng < 0.25) continue;
+      const nota = dist * (2 - cosAng); // prefere perto e bem à frente
+      if (nota < melhorNota) { melhorNota = nota; melhor = alvo; }
+    }
+    return melhor;
+  }
+
   /** Converte um ponto local do personagem (x, y, z) para o mundo. */
   pontoNoMundo(local, destino = new THREE.Vector3()) {
     const s = Math.sin(this.angulo), c = Math.cos(this.angulo);
@@ -174,14 +198,21 @@ export class Jogador {
       this.atingidos.clear();
       som.efeito('ataque_' + this.tipoAtaque);
       if (Math.hypot(mx, mz) > 0.2) this.angulo = Math.atan2(mx, mz);
+      this.alvoMira = this._mirar();
+      if (this.alvoMira) {
+        const c = this.alvoMira.centro();
+        this.angulo = Math.atan2(c.x - this.posicao.x, c.z - this.posicao.z);
+      }
       this.velocidade.x += Math.sin(this.angulo) * this.ataque.passo;
       this.velocidade.z += Math.cos(this.angulo) * this.ataque.passo;
     }
     if (this.tipoAtaque === 'projetil' && !this.disparou && this.tempoAtaque >= this.ataque.disparo) {
       this.disparou = true;
+      const origem = this.pontoNoMundo(this.pontoMao);
+      const direcao = new THREE.Vector3(Math.sin(this.angulo), 0, Math.cos(this.angulo));
+      if (this.alvoMira?.ativo) direcao.copy(this.alvoMira.centro()).sub(origem); // mira também na altura
       projeteis.disparar({
-        origem: this.pontoNoMundo(this.pontoMao),
-        direcao: new THREE.Vector3(Math.sin(this.angulo), 0, Math.cos(this.angulo)),
+        origem, direcao,
         velocidade: 16, dono: 'jogador', cor: 0xffb02e, raio: 0.22, dano: this.dano, duracao: 0.9,
       });
     }
@@ -278,7 +309,7 @@ export class Jogador {
       e.anel.material.color.setHSL((this.tempoVisual * 2) % 1, 1, 0.6);
     }
     if (e.feixe.visible) {
-      e.feixe.position.set(pm.x, pm.y, pm.z + 1.1);
+      e.feixe.position.set(pm.x, pm.y, pm.z + 1.8);
       const tremor = 0.6 + Math.random() * 0.8;
       e.feixe.scale.set(tremor, tremor, 1);
     }

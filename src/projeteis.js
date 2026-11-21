@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { som } from './audio.js';
 
-const RAIO_EXPLOSAO = 1.7;
+const RAIO_EXPLOSAO = 2.2;
 
 export class Projeteis {
   constructor(cena) {
@@ -52,7 +52,7 @@ export class Projeteis {
         }
       } else if (!fim && p.dono === 'jogador') {
         fim = inimigos.lista.some((ini) => ini.ativo &&
-          pos.distanceTo(ini.centro()) < p.raio + ini.raio + 0.1);
+          pos.distanceTo(ini.centro()) < p.raio + ini.raio + 0.4);
       }
 
       if (fim) {

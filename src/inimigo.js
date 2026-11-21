@@ -306,7 +306,7 @@ export class GerenciadorInimigos {
       // Golpe corpo a corpo do jogador
       if (area && !jogador.atingidos.has(ini)) {
         const dx = c.x - area.x, dz = c.z - area.z, dy = c.y - area.y;
-        if (Math.hypot(dx, dz) < area.raio + ini.raio && Math.abs(dy) < 1.4) {
+        if (Math.hypot(dx, dz) < area.raio + ini.raio && Math.abs(dy) < 2) {
           jogador.atingidos.add(ini);
           this.acertar(ini, area.dano, jogador.posicao.x, jogador.posicao.z, particulas);
           continue;

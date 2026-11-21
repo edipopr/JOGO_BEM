@@ -205,3 +205,44 @@ html, body {
   50%, 80% { transform: rotate(-90deg); }
   100% { transform: rotate(0deg); }
 }
+
+/* Telas sempre cabem: rolam se faltar espaço (celular deitado tem pouca altura) */
+.tela { justify-content: safe center; overflow-y: auto; touch-action: pan-y; }
+.vitoria-conteudo { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+@media (max-height: 500px) {
+  .tela { gap: 6px; padding: 8px 16px; }
+  .tela h1 { font-size: 40px; text-shadow: 0 4px 0 #ff8a1f, 0 6px 12px rgba(0,0,0,.5); }
+  .tela-derrota h1 { text-shadow: 0 4px 0 #5a1d9e, 0 6px 12px rgba(0,0,0,.5); }
+  .tela h2 { font-size: 18px; margin-bottom: 4px; }
+  .tela button { font-size: 20px; padding: 8px 28px; }
+  .tela button.secundario { font-size: 16px; padding: 7px 20px; }
+  .vitoria-conteudo { flex-direction: row; align-items: center; gap: 16px; }
+  .objetivos { font-size: 15px; }
+  .objetivos li { margin: 2px 0; }
+  .objetivos .estrela-meta { font-size: 1.4em; }
+  .resumo { font-size: 14px; padding: 8px 14px; margin-bottom: 0; }
+  .dica-tela { font-size: 13px; }
+  .versao { margin-top: 4px; }
+}
+
+/* ---------- Painel do jogo ---------- */
+.tela-painel h3 { font-size: clamp(22px, 5vw, 32px); color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8; }
+.tela-painel h4 { font-size: 16px; color: #ffd84a; margin-bottom: 6px; text-align: left; }
+.painel-numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 130px)); gap: 8px; justify-content: center; width: 100%; }
+.painel-numeros div { background: rgba(0,0,0,.35); border-radius: 14px; padding: 8px 6px; }
+.painel-numeros b { display: block; font-size: 26px; color: #fff; }
+.painel-numeros span { font-size: 12px; opacity: .85; }
+.painel-colunas { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 760px; }
+.painel-colunas > div { flex: 1 1 260px; background: rgba(0,0,0,.3); border-radius: 14px; padding: 10px 12px; }
+.painel-herois .atributo { grid-template-columns: 130px 1fr 34px; font-size: 13px; margin: 3px 0; text-align: left; }
+.painel-herois .barra { height: 10px; }
+.painel-ultimas { list-style: none; font-size: 13px; text-align: left; }
+.painel-ultimas li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+.painel-ultimas .ok { color: #7dff5a; }
+.painel-ultimas .nao { color: #ff8ab0; }
+@media (max-width: 640px) { .painel-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-height: 500px) {
+  .tela-painel h3 { font-size: 20px; }
+  .painel-numeros b { font-size: 20px; }
+  .painel-numeros div { padding: 4px; }
+}

@@ -12,6 +12,7 @@ import { criarFlorestaDosAmigos } from './fases/floresta.js';
 import { configurarApp } from './pwa.js';
 import { VERSAO } from './versao.js';
 import { som } from './audio.js';
+import { estatisticas } from './estatisticas.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
 configurarApp({ podeRecarregar: () => estado !== 'jogando' && estado !== 'caindo' });
@@ -57,12 +58,14 @@ const particulas = new Particulas(cena);
 const projeteis = new Projeteis(cena);
 const cameraSeguidora = new CameraSeguidora(camera);
 const corpos = [jogador, ...inimigos.lista]; // carregados pelas plataformas móveis
+jogador.alvos = () => inimigos.lista; // para a mira automática
 cameraSeguidora.atualizar(jogador.posicao, 0, true);
 
 // ----- Elementos da interface -----
 const $ = (id) => document.getElementById(id);
 const telas = {
   inicial: $('tela-inicial'), selecao: $('tela-selecao'), vitoria: $('tela-vitoria'), derrota: $('tela-derrota'),
+  painel: $('tela-painel'),
 };
 const hud = $('hud');
 const controlesToque = $('controles-toque');
@@ -76,6 +79,17 @@ let estado = 'inicio';
 let tempoAnimacao = 0;
 let tempoMensagem = 0;
 const partida = { cristais: 0, estrelas: 0, pontos: 0, tempo: 0 };
+const registrado = { tempo: 0, inimigos: 0 }; // o que já foi contado no painel nesta partida
+
+/** Registra no painel o fim (vitória) ou uma derrota da partida atual. */
+function registrarFim(resultado) {
+  estatisticas.terminou(resultado, {
+    heroi: jogador.id, tempo: partida.tempo, pontos: pontosTotais(),
+    tempoNovo: partida.tempo - registrado.tempo, inimigosNovos: inimigos.derrotados - registrado.inimigos,
+  });
+  registrado.tempo = partida.tempo;
+  registrado.inimigos = inimigos.derrotados;
+}
 const avisosVistos = new Set();
 const totalCristais = itens.total('cristal');
 const totalEstrelas = itens.total('estrela');
@@ -86,7 +100,7 @@ function mostrarTela(nome) {
   hud.classList.toggle('oculto', !emJogo);
   controlesToque.classList.toggle('oculto', !(emJogo && ehToque));
   // Música de cada tela (durante a partida a música depende da área — ver passo())
-  if (nome === 'inicial' || nome === 'selecao') som.musica('menu');
+  if (nome === 'inicial' || nome === 'selecao' || nome === 'painel') som.musica('menu');
   else if (nome === 'vitoria' || nome === 'derrota') som.musica(null);
 }
 
@@ -164,6 +178,11 @@ function comecarPartida(voltarAoInicio) {
     itens.reiniciar();
     checkpoints.reiniciar();
     inimigos.reiniciar();
+    registrado.tempo = 0;
+    registrado.inimigos = 0;
+    estatisticas.comecou(jogador.id);
+  } else {
+    estatisticas.tentouDeNovo();
   }
   projeteis.limpar();
   jogador.reiniciar(voltarAoInicio);
@@ -228,6 +247,7 @@ function vencer() {
     <span>Inimigos derrotados</span><b>${inimigos.derrotados}</b>
     <span>Tempo</span><b>${min}:${String(seg).padStart(2, '0')}</b>
     <span>Pontos</span><b>${pontosTotais()}</b>`;
+  registrarFim('vitoria');
   mostrarTela('vitoria');
   som.efeito('vitoria');
 }
@@ -268,6 +288,11 @@ $('btn-comecar').addEventListener('click', () => {
   setTimeout(() => $('dica').classList.add('oculto'), 8000);
 });
 $('btn-voltar').addEventListener('click', () => { estado = 'inicio'; mostrarTela('inicial'); });
+$('btn-painel').addEventListener('click', () => { estatisticas.mostrar($); mostrarTela('painel'); });
+$('btn-painel-voltar').addEventListener('click', () => mostrarTela('inicial'));
+$('btn-painel-zerar').addEventListener('click', () => {
+  if (confirm('Zerar todas as estatísticas deste aparelho?')) { estatisticas.zerar(); estatisticas.mostrar($); }
+});
 $('btn-de-novo').addEventListener('click', () => comecarPartida(true));
 $('btn-tentar').addEventListener('click', () => comecarPartida(false));
 $('btn-recomecar').addEventListener('click', () => comecarPartida(true));
@@ -323,6 +348,7 @@ function passo(dt, desenhar = true) {
         vencer();
       } else if (jogador.vida <= 0) {
         estado = 'caindo';
+        registrarFim('derrota');
         tempoAnimacao = 1.2;
         jogador.modelo.visible = false;
         som.musica(null);
