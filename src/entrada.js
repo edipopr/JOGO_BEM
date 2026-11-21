@@ -7,6 +7,7 @@ export class Entrada {
     this.teclas = new Set();
     this.joystick = { x: 0, y: 0 };
     this.puloPedido = false;
+    this.ataquePedido = false;
     this.giro = { x: 0, y: 0 }; // arrasto acumulado para a câmera
 
     window.addEventListener('keydown', (e) => {
@@ -14,6 +15,7 @@ export class Entrada {
         if (!e.repeat) this.puloPedido = true;
         e.preventDefault();
       }
+      if (e.code === 'KeyJ' && !e.repeat) this.ataquePedido = true;
       this.teclas.add(e.code);
     });
     window.addEventListener('keyup', (e) => this.teclas.delete(e.code));
@@ -48,6 +50,12 @@ export class Entrada {
     const p = this.puloPedido;
     this.puloPedido = false;
     return p;
+  }
+
+  consumirAtaque() {
+    const a = this.ataquePedido;
+    this.ataquePedido = false;
+    return a;
   }
 
   consumirGiro() {
@@ -110,6 +118,10 @@ export class Entrada {
     document.getElementById('btn-pular').addEventListener('pointerdown', (e) => {
       e.preventDefault();
       this.puloPedido = true;
+    });
+    document.getElementById('btn-atacar').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      this.ataquePedido = true;
     });
   }
 }

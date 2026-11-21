@@ -98,5 +98,12 @@ export function criarFaseTeste(cena) {
     cena.add(grupo);
   }
 
-  return { caixas, pontoInicial: new THREE.Vector3(0, 0, 0) };
+  // ----- Onde nascem as criaturas contaminadas -----
+  const inimigos = [
+    [7, 0, -9], [-7, 0, 9], [12, 0, -20], [-16, 0, -4], [18, 0, 2],
+    [-8, 3, -28.5], // no mirante
+    [17, 6.5, -33], // na plataforma de chegada
+  ].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+
+  return { caixas, inimigos, pontoInicial: new THREE.Vector3(0, 0, 0) };
 }

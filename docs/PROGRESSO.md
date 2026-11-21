@@ -2,8 +2,8 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 1 concluída (aguardando teste do usuário)
-- **Próximo passo:** testar a Fase 1 no PC e celular; depois iniciar a **Fase 2 — Combate básico**.
+- **Fase atual:** Fase 2 concluída (aguardando teste do usuário)
+- **Próximo passo:** testar a Fase 2; depois iniciar a **Fase 3 — Itens e objetivos** (cristais, coração, estrela, checkpoint, telas de vitória/derrota).
 
 ## Fases
 
@@ -19,12 +19,13 @@
 - [x] Renascer ao cair no vazio
 - [x] Servidor local (`iniciar.bat`)
 
-### Fase 2 — Combate básico
-- [ ] Ataque (soco energético) — tecla J / botão na tela
-- [ ] Inimigo simples (criatura contaminada que persegue)
-- [ ] Sistema de vida (3 corações) e dano com piscada de invencibilidade
-- [ ] Inimigo derrotado com efeito de partículas
-- [ ] HUD com corações
+### Fase 2 — Combate básico ✅
+- [x] Ataque (soco energético) — tecla J / botão Atacar na tela
+- [x] Inimigo simples: gosma roxa contaminada que vaga e persegue (2 golpes para derrotar, renasce após 8 s)
+- [x] Sistema de vida (3 corações), dano com empurrão e piscada de invencibilidade
+- [x] Cair no vazio tira 1 coração; derrota provisória reinicia com vida cheia
+- [x] Inimigo derrotado com efeito de partículas
+- [x] HUD com corações
 
 ### Fase 3 — Itens e objetivos
 - [ ] Cristais coletáveis + contador
@@ -69,3 +70,4 @@
 
 ## Histórico
 - **2026-11-21:** GDD lido; repositório criado; tecnologia definida (Three.js); Fase 1 implementada.
+- **2026-11-21:** Fase 2 implementada (combate, inimigos, vida, partículas; física movida para src/fisica.js).

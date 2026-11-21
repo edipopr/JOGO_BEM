@@ -46,8 +46,20 @@ html, body {
 
 /* ---------- HUD ---------- */
 #hud { position: fixed; inset: 0; pointer-events: none; }
+#coracoes { position: absolute; top: 10px; left: 16px; display: flex; gap: 4px; }
+.coracao {
+  font-size: 40px; line-height: 1; color: #ff3b5c;
+  text-shadow: 0 3px 0 #8a0f25, 0 0 8px rgba(0,0,0,.4);
+}
+.coracao.vazio { color: rgba(0,0,0,.35); text-shadow: none; }
+#mensagem {
+  position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+  max-width: calc(100% - 32px); text-align: center;
+  font-size: clamp(22px, 5vw, 40px); font-weight: bold;
+  color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8, 0 6px 12px rgba(0,0,0,.5);
+}
 #dica {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 64px; left: 50%; transform: translateX(-50%);
   max-width: calc(100% - 32px);
   background: rgba(0,0,0,.4); padding: 8px 16px; border-radius: 20px;
   font-size: 14px; text-align: center;
@@ -74,3 +86,4 @@ html, body {
 }
 .btn-toque:active { transform: translateY(3px); }
 #btn-pular { right: 24px; bottom: 32px; background: rgba(60, 170, 255, .85); }
+#btn-atacar { right: 134px; bottom: 80px; background: rgba(255, 138, 31, .9); }

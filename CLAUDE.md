@@ -25,7 +25,10 @@ index.html        página do jogo (importmap, HUD, telas, controles de toque)
 styles.css        estilos da interface
 src/main.js       inicialização, loop do jogo, telas
 src/entrada.js    teclado, mouse e controles de toque (joystick virtual)
-src/jogador.js    modelo do Guizinho, movimento, pulo, colisão
+src/jogador.js    modelo do Guizinho, movimento, pulo, ataque, vida
+src/fisica.js     gravidade e colisão compartilhadas (jogador e inimigos)
+src/inimigo.js    gosmas contaminadas (IA simples) + GerenciadorInimigos (combate)
+src/particulas.js efeitos de partículas
 src/camera.js     câmera em terceira pessoa
 src/fase.js       cenário de teste (chão, plataformas, árvores)
 docs/PROGRESSO.md fases de desenvolvimento e onde paramos
