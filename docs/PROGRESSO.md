@@ -2,9 +2,14 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 4 concluída + escolha de personagem (parte da Fase 8, adiantada a pedido do usuário)
-- **Jogo online:** https://edipopr.github.io/JOGO_BEM/
-- **Próximo passo:** usuário testar os 4 heróis e a Floresta; depois iniciar a **Fase 5 — Chefão Guardião da Floresta** (substitui o portal da arena: derrotar o chefão abre o portal).
+- **Fase atual:** Fase 4 concluída + extras pedidos pelo usuário: escolha de 4 heróis, trilha sonora e efeitos, jogo na horizontal no celular, atualização automática do app
+- **Jogo online:** https://edipopr.github.io/JOGO_BEM/ — versão publicada: 21/11/2026 14:09
+- **Aguardando retorno do usuário:**
+  - Se o celular passou a mostrar a versão nova (pedimos para fechar o app por completo e abrir de novo; se não, limpar dados do site no Chrome)
+  - Se a troca de herói funciona no celular dele (no teste com toque emulado funcionou; suspeita era cache misturado)
+  - Volume/qualidade dos sons e da música (Claude não consegue ouvir; ajustar em `src/audio.js`)
+- **Próximo passo:** **Fase 5 — Chefão Guardião da Floresta** na arena (golpe no chão, investida, bolas de energia; vulnerável após 3 ciclos; barra de vida; derrotá-lo abre o portal). Lembrar: som do chefão e música de chefão em `src/audio.js`.
+- **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
 
 ## Fases
 
