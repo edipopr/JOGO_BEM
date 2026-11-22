@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Guizinho — cartões para distribuir</title>
+<!-- 8 cartões (95 × 68 mm) numa folha A4. Gerar o PDF: sh ferramentas/gerar_cartoes.sh -->
+<style>
+@page { size: 210mm 297mm; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 210mm; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; }
+.folha { position: relative; width: 210mm; height: 297mm; overflow: hidden; }
+.corte { position: absolute; background: #9a9a9a; }
+.cartao { position: absolute; width: 95mm; height: 68mm; overflow: hidden; background: #123; color: #fff; }
+.cartao > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.borda { position: absolute; inset: 2.6mm; border: .7mm solid var(--cor); border-radius: 4mm; }
+.logo { position: absolute; left: 5.6mm; top: 4.4mm; line-height: 1; }
+.logo b { display: block; font-size: 27pt; color: #7dff5a; letter-spacing: .3mm; }
+.logo b svg, .logo svg { display: block; overflow: visible; }
+.lado { position: absolute; right: 6.4mm; top: 6.4mm; bottom: 6.4mm; width: 31mm; text-align: center; }
+.chamada { font-size: 11.5pt; font-weight: bold; line-height: 1.12; color: #ffd84a; height: 10.4mm; display: flex; align-items: center; justify-content: center; }
+.qr { width: 31mm; height: 31mm; background: #fff; border-radius: 3mm; border: .8mm solid var(--cor); padding: .4mm; margin-top: 1mm; }
+.qr svg { display: block; width: 100%; height: 100%; }
+.passos { font-size: 7.2pt; font-weight: bold; margin-top: 1.5mm; line-height: 1.25; }
+.gratis { margin-top: 1.4mm; background: #ff8a1f; border-radius: 4mm; font-weight: bold; font-size: 8pt; padding: .9mm 0; }
+.nome { position: absolute; left: 5.4mm; bottom: 4.6mm; background: var(--cor); color: var(--texto, #fff); border-radius: 2.6mm; padding: .7mm 2.6mm .9mm; line-height: 1.1; }
+.nome strong { display: block; font-size: 11pt; }
+.nome span { font-size: 7.6pt; font-weight: bold; }
+.url { position: absolute; left: 0; right: 0; bottom: .55mm; text-align: center; font-size: 5pt; color: rgba(255,255,255,.85); }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+</head>
+<body>
+<div class="folha" id="folha"></div>
+<script type="module">
+import * as THREE from 'three';
+import { PERSONAGENS } from '../src/personagens.js';
+import { FASES } from '../src/fases/index.js';
+import { GerenciadorItens } from '../src/itens.js';
+
+const ENDERECO = 'https://edipopr.github.io/JOGO_BEM/';
+
+// lugar = posição na fase; topo = altura do personagem (m); cx = centro dele no cartão (mm, a partir da esquerda)
+const CARTOES = [
+  { fase: 'floresta', herois: [['guizinho', 0, 0, 0.35, 'pulo']], lugar: [0, 0, 1], topo: 2.05, cx: 35,
+    cor: '#4cd137', texto: '#0b2b06', nome: 'Guizinho', frase: 'O Herói', chamada: 'Venha ser um herói!' },
+  { fase: 'mar', herois: [['irmao', 0, 0, 0.3, 'forca']], lugar: [0, 0, 3], topo: 2.5, cx: 31,
+    cor: '#b36bff', nome: 'Irmão do Guizinho', frase: 'O Braço Forte', chamada: 'Braços gigantes!' },
+  { fase: 'noite', herois: [['tvRambon', 0, 0, 0.3, 'abre']], lugar: [0, 0, 1], topo: 2.75, cx: 32,
+    cor: '#ff6bd0', nome: 'TV Rambon', frase: 'O Poder Colorido', chamada: 'Ligue a aventura!' },
+  { fase: 'laboratorio', herois: [['experimentoCaixa', 0, 0, 0.3, 'acena']], lugar: [0, 0, 2], topo: 1.85, cx: 33,
+    cor: '#e0a95a', texto: '#3a2408', nome: 'Experimento Caixa', frase: 'O Cientista', chamada: 'Abra essa caixa!' },
+  { fase: 'floresta', herois: [['funBot', 0, 0, 0.3, 'mira']], lugar: [0, 6, -50], topo: 2.05, cx: 33,
+    cor: '#4f93f5', nome: 'Mr. Fun BOT', frase: 'O Robô', chamada: 'Missão: diversão!' },
+  { fase: 'mar', chefao: true, lugar: [0, 13, -170], topo: 6.1, cx: 32,
+    cor: '#ff5a5a', nome: 'IORO', frase: 'O Palhaço Caótico', chamada: 'Você encara o IORO?' },
+  { fase: 'castelo', chefao: true, lugar: [0, 14, -142.4], topo: 6.2, cx: 32,
+    cor: '#ff3bd0', nome: 'Rei do Pesadelo', frase: 'O Vilão Final', chamada: 'Derrote o Rei!' },
+  { fase: 'floresta', herois: [['tvRambon', -1.45, -1.1, 0.35, 'abre'], ['funBot', 0.35, -1.2, 0.2, 'normal'], ['irmao', -1.75, 0.55, 0.45, 'forca'], ['guizinho', -0.1, 0.9, 0.25, 'pulo'], ['experimentoCaixa', 1.15, 0.45, 0.1, 'acena']],
+    lugar: [0, 0, 0], topo: 3.35, cx: 32,
+    cor: '#ffb02e', texto: '#3a2000', nome: 'A turma toda', frase: '5 heróis · 6 fases · 6 chefões', chamada: 'Junte-se à turma!' },
+];
+
+// ---------- Desenho 3D ----------
+const L = 1520, A = 1088; // 95 × 68 mm a ~400 dpi
+const render = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+render.setSize(L, A);
+render.shadowMap.enabled = true;
+render.shadowMap.type = THREE.PCFSoftShadowMap;
+const camera = new THREE.PerspectiveCamera(36, L / A, 0.1, 220);
+
+function posar(m, pose) {
+  const [e, d] = [m.bracoE, m.bracoD];
+  const braco = (b, x, z) => { b.rotation.x = x; b.rotation.z = z; };
+  if (pose === 'pulo') {
+    braco(e, -0.3, -0.9); braco(d, -2.7, 0.35);
+    m.pernaE.rotation.x = -0.7; m.pernaD.rotation.x = 0.45;
+    m.grupo.position.y += 0.22;
+  } else if (pose === 'forca') { braco(e, 0, -0.85); braco(d, 0, 0.85); }
+  else if (pose === 'abre') { braco(e, -0.2, -1.25); braco(d, -0.2, 1.25); }
+  else if (pose === 'acena') { braco(e, 0, -0.35); braco(d, 0, 2.5); }
+  m.animar?.(0.86);
+}
+
+const padrao = new THREE.Vector3();
+function desenhar(c) {
+  const cena = new THREE.Scene();
+  const fase = FASES.find((f) => f.id === c.fase).criar(cena);
+  new GerenciadorItens(cena, fase.itens);
+  const lugar = new THREE.Vector3(...c.lugar);
+  for (let i = 0; i < 30; i++) fase.atualizar(0.1, [], lugar);
+  for (const [id, x, z, giro, pose] of c.herois || []) {
+    const m = PERSONAGENS[id].criarModelo();
+    m.grupo.position.set(lugar.x + x, lugar.y, lugar.z + z);
+    m.grupo.rotation.y = giro;
+    posar(m, pose);
+    cena.add(m.grupo);
+  }
+  if (c.chefao) {
+    const chefe = fase.criarChefao(cena, { explosao() {} }, fase);
+    chefe.estado = c.fase === 'mar' ? 'purificado' : 'exercito';
+    for (let i = 0; i < 60; i++) { chefe.tempo += 1 / 30; chefe._atualizarVisual(1 / 30); }
+    chefe.modelo.rotation.y = 0.3;
+    chefe.modelo.position.copy(lugar);
+  }
+  if (c.chefao && c.fase === 'mar') cena.traverse((o) => { if (o.material?.fog === false && o.geometry.parameters?.depth === 0.4) o.visible = false; }); // sem janelas do castelo atrás do letreiro
+  // luz de "estúdio" para o personagem aparecer bem no papel
+  const frente = new THREE.DirectionalLight(0xffffff, c.fase === 'floresta' ? 0.7 : c.fase === 'noite' ? 2.4 : 1.5);
+  frente.position.set(lugar.x + 4, lugar.y + 6, lugar.z + 12);
+  frente.target.position.copy(lugar);
+  cena.add(frente, frente.target);
+  camera.far = fase.longe ?? 220;
+  camera.updateProjectionMatrix();
+  // Enquadra: pés em 55 mm, cabeça em 18 mm (entre o letreiro e a plaquinha do nome)
+  const visivel = c.topo * 68 / 37;
+  const ox = (47.5 - c.cx) / 68 * visivel, oy = (55 - 34) / 68 * visivel;
+  camera.position.copy(lugar).add(padrao.set(ox, oy + visivel * 0.1, visivel / (2 * Math.tan(Math.PI / 10))));
+  camera.lookAt(lugar.x + ox, lugar.y + oy, lugar.z);
+  render.render(cena, camera);
+  // Escurecido já dentro da imagem (igual em qualquer leitor de PDF e impressora)
+  const tela = document.createElement('canvas');
+  tela.width = L; tela.height = A;
+  const g = tela.getContext('2d');
+  g.drawImage(render.domElement, 0, 0);
+  const lado = g.createLinearGradient(L * 0.5, 0, L * 0.7, 0);
+  lado.addColorStop(0, 'rgba(34,8,63,0)'); lado.addColorStop(1, 'rgba(34,8,63,.93)');
+  g.fillStyle = lado; g.fillRect(0, 0, L, A);
+  const base = g.createLinearGradient(0, A * 0.78, 0, A);
+  base.addColorStop(0, 'rgba(34,8,63,0)'); base.addColorStop(1, 'rgba(34,8,63,.75)');
+  g.fillStyle = base; g.fillRect(0, 0, L, A);
+  return tela.toDataURL('image/jpeg', 0.93);
+}
+
+// ---------- Cartões ----------
+function svgQr() {
+  const qr = qrcode(0, 'Q'); // correção de erro 25%: continua lendo com marcas de dobra
+  qr.addData(ENDERECO);
+  qr.make();
+  const n = qr.getModuleCount(), m = 4; // 4 módulos de margem (exigido para leitura)
+  let d = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.isDark(y, x)) d += `M${x + m} ${y + m}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${n + 2 * m} ${n + 2 * m}" shape-rendering="crispEdges"><path d="${d}" fill="#22083f"/></svg>`;
+}
+const qr = svgQr();
+// Letreiro igual ao do jogo: letra com contorno escuro e "degrau" colorido embaixo
+const letreiro = `
+<svg width="38mm" height="13.3mm" viewBox="0 0 200 70" font-family="Trebuchet MS, Segoe UI, sans-serif" font-weight="bold">
+  <g font-size="46" letter-spacing="1">
+    <text x="2" y="42" fill="#3d1670" stroke="#3d1670" stroke-width="7" stroke-linejoin="round">Guizinho</text>
+    <text x="2" y="41" fill="#ff8a1f">Guizinho</text>
+    <text x="2" y="38" fill="#7dff5a">Guizinho</text>
+  </g>
+  <g font-size="17.5">
+    <text x="4" y="63" fill="#3d1670" stroke="#3d1670" stroke-width="5" stroke-linejoin="round">A Invasão do Pesadelo</text>
+    <text x="4" y="63" fill="#ffd84a">A Invasão do Pesadelo</text>
+  </g>
+</svg>`;
+const folha = document.getElementById('folha');
+const X0 = 10, Y0 = 12.5, CL = 95, CA = 68;
+CARTOES.forEach((c, i) => {
+  const x = X0 + (i % 2) * CL, y = Y0 + Math.floor(i / 2) * CA;
+  folha.insertAdjacentHTML('beforeend', `
+  <div class="cartao" style="left:${x}mm;top:${y}mm;--cor:${c.cor};--texto:${c.texto || '#fff'}">
+    <img src="${desenhar(c)}" alt="">
+    <div class="borda"></div>
+    <div class="logo">${letreiro}</div>
+    <div class="nome"><strong>${c.nome}</strong><span>${c.frase}</span></div>
+    <div class="lado">
+      <div class="chamada">${c.chamada}</div>
+      <div class="qr">${qr}</div>
+      <div class="passos">Aponte a câmera do<br>celular e comece a jogar!</div>
+      <div class="gratis">Jogo grátis</div>
+    </div>
+    <div class="url">edipopr.github.io/JOGO_BEM</div>
+  </div>`);
+});
+// Marcas de corte fora dos cartões
+const marca = (x, y, l, a) => folha.insertAdjacentHTML('beforeend', `<div class="corte" style="left:${x}mm;top:${y}mm;width:${l}mm;height:${a}mm"></div>`);
+for (let i = 0; i <= 2; i++) for (const y of [5, Y0 + 4 * CA + 1.5]) marca(X0 + i * CL - 0.1, y, 0.2, 6);
+for (let j = 0; j <= 4; j++) for (const x of [2.5, X0 + 2 * CL + 1.5]) marca(x, Y0 + j * CA - 0.1, 6, 0.2);
+// Linhas tracejadas para recortar com tesoura
+const traco = (x, y, l, a, lado) => folha.insertAdjacentHTML('beforeend', `<div style="position:absolute;left:${x}mm;top:${y}mm;width:${l}mm;height:${a}mm;border-${lado}:.25mm dashed #fff"></div>`);
+traco(X0 + CL - 0.125, Y0, 0, 4 * CA, 'left');
+for (let j = 1; j < 4; j++) traco(X0, Y0 + j * CA - 0.125, 2 * CL, 0, 'top');
+await Promise.all([...document.images].map((im) => im.decode()));
+document.body.dataset.pronto = '1';
+</script>
+</body>
+</html>

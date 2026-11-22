@@ -127,3 +127,4 @@
 - **2026-11-21:** Contagem online (Firebase) + painel online; Fase 6 (menu, pausa, salvamento, configurações).
 - **2026-11-21:** Fase 8 (habilidades especiais) e segunda fase (Floresta à Noite + Monstro de Cristal); suporte a várias fases.
 - **2026-11-22:** Irmão do Guizinho, modelos/animações novos, fases 3 a 6 (Mar, Laboratório, Floresta do Pesadelo, Castelo) com Ioro, Experimento Caixa 2, Guardião da Infecção e Rei do Pesadelo; infecção; final do jogo. Correção: árvore tapava o herói no início da Floresta à Noite; inimigos apareciam amontoados no (0,0,0) na tela de seleção.
+- **2026-11-22:** Cartões de divulgação em PDF A4 com QR Code (`divulgacao/cartoes-guizinho.pdf`, 8 por folha).

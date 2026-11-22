@@ -74,6 +74,7 @@ src/audio.js          som: efeitos e trilha sintetizados (Web Audio); som.efeito
 src/versao.js         versão exibida na tela inicial (trocada por ferramentas/nova_versao.sh)
 sw.js                 service worker (cache offline) — ao criar arquivo novo, adicionar em ARQUIVOS e subir VERSAO
 manifest.webmanifest  app instalável; ícones em icones/ (gerados por ferramentas/gerar_icones.ps1)
+divulgacao/           cartoes.html → cartoes-guizinho.pdf (A4, 8 cartões com QR; gerar com ferramentas/gerar_cartoes.sh e o servidor local ligado)
 ferramentas/          gerar_icones.ps1, teste.html, celular.ps1 (toque emulado), nova_versao.sh
 docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 ```
