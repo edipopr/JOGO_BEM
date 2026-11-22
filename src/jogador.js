@@ -113,7 +113,19 @@ export class Jogador {
     this.angulo = Math.PI; // de costas para a câmera, olhando para o caminho (-Z)
     this.tempoAnimacao = 0;
     this.tempoInvencivel = 1;
+    this.tempoDash = 0;
+    this.tempoEscudo = 0;
   }
+
+  /** Dash de energia: corre reto e rápido por alguns instantes, protegido. */
+  iniciarDash(dirX, dirZ, velocidade, duracao) {
+    this.tempoDash = duracao;
+    this.dash = { x: dirX * velocidade, z: dirZ * velocidade };
+    this.angulo = Math.atan2(dirX, dirZ);
+  }
+
+  /** Protegido pelo dash ou pelo campo tecnológico. */
+  get protegido() { return this.tempoDash > 0 || this.tempoEscudo > 0; }
 
   /** Área do golpe corpo a corpo ativo, ou null. */
   areaGolpe() {
@@ -133,7 +145,11 @@ export class Jogador {
    * dentro do alcance do ataque. this.alvos() é definido pelo main (inimigos + chefão).
    */
   _mirar() {
-    const alcance = this.ataque.mira;
+    return this.mirarAlvo(this.ataque.mira);
+  }
+
+  /** Alvo mais próximo à frente dentro do alcance (também usado pelo tiro de canhão). */
+  mirarAlvo(alcance) {
     if (!alcance || !this.alvos) return null;
     const fx = Math.sin(this.angulo), fz = Math.cos(this.angulo);
     let melhor = null, melhorNota = Infinity;
@@ -163,7 +179,7 @@ export class Jogador {
 
   /** Leva dano vindo da posição (x, z), com um empurrão. Retorna true se o dano foi aplicado. */
   levarDano(origemX, origemZ, empurrao = 8) {
-    if (this.tempoInvencivel > 0 || this.vida <= 0) return false;
+    if (this.tempoInvencivel > 0 || this.vida <= 0 || this.protegido) return false;
     this.vida--;
     this.tempoInvencivel = TEMPO_INVENCIVEL;
     som.efeito('dano');
@@ -228,6 +244,11 @@ export class Jogador {
       this.tempoForaDoChao = 99;
     }
     this.velocidade.y = Math.max(this.velocidade.y + GRAVIDADE * dt, -40);
+    if (this.tempoDash > 0) { // dash: ignora gravidade e controle
+      this.tempoDash -= dt;
+      this.velocidade.set(this.dash.x, 0, this.dash.z);
+      if (this.tempoDash <= 0) { this.velocidade.x *= 0.3; this.velocidade.z *= 0.3; }
+    }
 
     // ----- Movimento + colisão -----
     this.noChao = moverComColisao(this, fase.caixas, dt);

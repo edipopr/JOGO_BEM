@@ -17,6 +17,7 @@ import { contagem } from './contagem.js';
 import { Chefao } from './chefao.js';
 import { configuracoes } from './configuracoes.js';
 import { salvamento } from './salvamento.js';
+import { Habilidades, HABILIDADES } from './habilidades.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
 configurarApp({ podeRecarregar: () => !['jogando', 'caindo', 'pausado'].includes(estado) });
@@ -62,6 +63,7 @@ const portal = new Portal(cena, fase.portal);
 const particulas = new Particulas(cena);
 const projeteis = new Projeteis(cena);
 const cameraSeguidora = new CameraSeguidora(camera);
+const habilidades = new Habilidades(cena);
 const chefao = new Chefao(cena, fase.arena, particulas, { barreira: fase.barreira, caixas: fase.caixas });
 inimigos.adicionar(chefao); // entra no combate como um inimigo (golpes, projéteis, mira)
 portal.abrir(false);         // o portal só abre quando o chefão for derrotado
@@ -78,8 +80,8 @@ const telas = {
 const hud = $('hud');
 const controlesToque = $('controles-toque');
 $('dica').textContent = ehToque
-  ? 'Joystick: mover (empurre até o fim para correr) · Arraste a tela: girar câmera'
-  : 'WASD: mover · Espaço: pular · J: atacar · Shift: correr · Arraste o mouse: girar câmera';
+  ? 'Joystick: mover (empurre até o fim para correr) · Poder: habilidade especial · Arraste a tela: girar câmera'
+  : 'WASD: mover · Espaço: pular · J: atacar · K: poder especial · Shift: correr · Arraste o mouse: girar câmera';
 
 // ----- Estado da partida -----
 // estado: 'inicio' | 'selecao' | 'jogando' | 'pausado' | 'caindo' (animação de derrota) | 'vitoria' | 'derrota'
@@ -148,6 +150,13 @@ function atualizarHud() {
   $('qtd-cristais').textContent = `${partida.cristais}/${totalCristais}`;
   $('qtd-estrelas').textContent = `${partida.estrelas}/${totalEstrelas}`;
   $('pontos').textContent = `${pontosTotais()} pts`;
+  // Carga da habilidade especial (botão Poder no celular, barrinha no PC)
+  const carga = habilidades.carga(jogador);
+  $('btn-poder').style.setProperty('--carga', carga.toFixed(3));
+  $('btn-poder').classList.toggle('pronto', carga >= 1);
+  $('carga-poder').style.width = `${carga * 100}%`;
+  $('hud-poder').classList.toggle('pronto', carga >= 1);
+  $('nome-poder').textContent = `K: ${HABILIDADES[jogador.personagem.habilidade].nome}`;
   // Barra de vida do chefão: aparece quando ele acorda
   const barraVisivel = chefao.acordado;
   $('chefao-barra').classList.toggle('oculto', !barraVisivel);
@@ -167,6 +176,7 @@ function montarCartoes() {
       <small>${p.titulo}</small>
       ${barra('Velocidade', p.velocidade)}${barra('Força', p.forca)}${barra('Pulo', p.pulo)}
       <em>${p.nomeAtaque}</em>
+      <em class="poder">⚡ ${HABILIDADES[p.habilidade].nome}</em>
     </button>`).join('');
   for (const el of $('cartoes').querySelectorAll('.cartao')) {
     el.addEventListener('click', () => escolherPersonagem(el.dataset.id));
@@ -262,6 +272,7 @@ function entrarNoJogo(pontoRenascer) {
   if (pontoRenascer) jogador.pontoRenascer.copy(pontoRenascer);
   portal.abrir(chefao.derrotado);
   projeteis.limpar();
+  habilidades.reiniciar();
   jogador.reiniciar(false);
   cameraSeguidora.distancia = 9;
   cameraSeguidora.inclinacao = 0.45;
@@ -514,7 +525,7 @@ window.addEventListener('resize', () => {
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console
-window.guizinhoDebug = { jogador, inimigos, chefao, portal, fase, som, contagem, salvamento, itens, checkpoints, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
+window.guizinhoDebug = { jogador, inimigos, habilidades, chefao, portal, fase, som, contagem, salvamento, itens, checkpoints, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
 
 // ----- Loop principal -----
 const relogio = new THREE.Clock();
@@ -555,6 +566,7 @@ function passo(dt, desenhar = true) {
       partida.tempo += dt;
       // Trilha: alegre na floresta, misteriosa no Bosque Escuro (fase.musicaEm)
       som.musica(chefao.acordado ? 'chefao' : fase.musicaEm(jogador.posicao));
+      habilidades.atualizar(dt, { jogador, entrada, eixos: cameraSeguidora.eixos(), inimigos, projeteis, particulas });
       jogador.atualizar(dt, entrada, cameraSeguidora.eixos(), fase, projeteis);
       if (jogador.quicou) particulas.explosao(jogador.posicao, 0xff6b9d, 10, 4);
       itens.atualizar(dt, jogador, particulas, aoColetar);

@@ -13,7 +13,7 @@ export class Projeteis {
   }
 
   /** dono: 'jogador' (explode e acerta inimigos) ou 'inimigo' (machuca o jogador). */
-  disparar({ origem, direcao, velocidade, dono, cor, raio = 0.25, dano = 1, duracao = 3 }) {
+  disparar({ origem, direcao, velocidade, dono, cor, raio = 0.25, dano = 1, duracao = 3, raioExplosao = RAIO_EXPLOSAO }) {
     let material = this.materiais.get(cor);
     if (!material) {
       material = new THREE.MeshBasicMaterial({ color: cor });
@@ -24,9 +24,20 @@ export class Projeteis {
     malha.position.copy(origem);
     this.cena.add(malha);
     this.lista.push({
-      malha, dono, raio, dano, cor, vida: duracao,
+      malha, dono, raio, dano, cor, vida: duracao, raioExplosao,
       vel: direcao.clone().normalize().multiplyScalar(velocidade),
     });
+  }
+
+  /** Some com os tiros inimigos perto de "centro" (onda de cores, campo tecnológico). */
+  destruirInimigos(centro, raio, particulas) {
+    for (let i = this.lista.length - 1; i >= 0; i--) {
+      const p = this.lista[i];
+      if (p.dono !== 'inimigo' || p.malha.position.distanceTo(centro) > raio) continue;
+      particulas.explosao(p.malha.position, 0xffffff, 6, 3);
+      this.cena.remove(p.malha);
+      this.lista.splice(i, 1);
+    }
   }
 
   limpar() {
@@ -57,7 +68,8 @@ export class Projeteis {
 
       if (fim) {
         if (p.dono === 'jogador') {
-          inimigos.acertarArea(pos, RAIO_EXPLOSAO, p.dano, particulas);
+          inimigos.acertarArea(pos, p.raioExplosao, p.dano, particulas);
+          if (p.raioExplosao > RAIO_EXPLOSAO) particulas.explosao(pos, 0xffe14a, 20, 8); // bala de canhão
           som.efeito('explosao');
           particulas.explosao(pos, p.cor, 14, 5);
         } else {

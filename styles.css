@@ -79,6 +79,7 @@ html, body {
 .cartao strong { font-size: 17px; }
 .cartao small { opacity: .8; font-size: 13px; margin-bottom: 2px; }
 .cartao em { font-size: 13px; color: #ffd84a; font-style: normal; margin-top: 2px; }
+.cartao em.poder { color: #d6b8ff; margin-top: 0; }
 .atributo { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 6px; font-size: 12px; }
 .barra { height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
 .barra i { display: block; height: 100%; background: var(--cor); border-radius: 4px; }
@@ -307,3 +308,20 @@ html, body {
   #btn-continuar small { font-size: 11px; }
   .menu { gap: 6px; }
 }
+
+/* ---------- Habilidade especial (Fase 8) ---------- */
+.btn-poder {
+  right: 30px; bottom: 140px; width: 76px; height: 76px; font-size: 15px;
+  background: conic-gradient(rgba(176, 125, 255, .95) calc(var(--carga, 1) * 360deg), rgba(60, 40, 90, .75) 0);
+}
+.btn-poder.pronto { box-shadow: 0 5px 0 rgba(0,0,0,.3), 0 0 14px 4px rgba(200, 150, 255, .8); }
+.hud-poder {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: bold;
+  background: rgba(0,0,0,.35); padding: 6px 12px; border-radius: 16px;
+}
+.carga-poder { width: 90px; height: 10px; border-radius: 5px; background: rgba(255,255,255,.2); overflow: hidden; }
+.carga-poder i { display: block; height: 100%; width: 100%; background: #b07dff; }
+.hud-poder.pronto .carga-poder i { background: #ffd84a; }
+@media (pointer: coarse) { .hud-poder { display: none; } }
+@media (max-height: 420px) { .btn-poder { bottom: 128px; width: 64px; height: 64px; } }

@@ -16,6 +16,7 @@ export class Entrada {
         e.preventDefault();
       }
       if (e.code === 'KeyJ' && !e.repeat) this.ataquePedido = true;
+      if (e.code === 'KeyK' && !e.repeat) this.habilidadePedida = true;
       if ((e.code === 'Escape' || e.code === 'KeyP') && !e.repeat) this.pausaPedida = true;
       this.teclas.add(e.code);
     });
@@ -57,6 +58,12 @@ export class Entrada {
     const a = this.ataquePedido;
     this.ataquePedido = false;
     return a;
+  }
+
+  consumirHabilidade() {
+    const h = !!this.habilidadePedida;
+    this.habilidadePedida = false;
+    return h;
   }
 
   consumirPausa() {
@@ -129,6 +136,10 @@ export class Entrada {
     document.getElementById('btn-atacar').addEventListener('pointerdown', (e) => {
       e.preventDefault();
       this.ataquePedido = true;
+    });
+    document.getElementById('btn-poder').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      this.habilidadePedida = true;
     });
   }
 }

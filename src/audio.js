@@ -228,6 +228,23 @@ class Audio {
         this._ruido(t, 1.2, { volume: 0.35, freqFiltro: 2000, ate: 100 });
         this._arpejo(['C5', 'E5', 'G5', 'C6', 'E6', 'G6', 'C7'], t + 1.3, 0.1, { tipo: 'triangle', volume: 0.18 });
         break;
+      // ----- Habilidades especiais -----
+      case 'hab_dash':
+        this._ruido(t, 0.3, { volume: 0.3, filtro: 'bandpass', freqFiltro: 600, ate: 4000 });
+        this._tom(300, t, 0.25, { tipo: 'sawtooth', ate: 1200, volume: 0.12 });
+        break;
+      case 'hab_onda':
+        ['C5', 'E5', 'G5', 'B5', 'D6', 'G6'].forEach((n, i) => this._tom(freq(n), t + i * 0.04, 0.6, { tipo: 'triangle', volume: 0.12 }));
+        this._ruido(t, 0.6, { volume: 0.2, filtro: 'bandpass', freqFiltro: 400, ate: 6000 });
+        break;
+      case 'hab_campo':
+        this._tom(220, t, 0.7, { tipo: 'sine', ate: 660, volume: 0.25 });
+        this._tom(223, t, 0.7, { tipo: 'square', ate: 665, volume: 0.06 });
+        break;
+      case 'hab_canhao':
+        this._tom(160, t, 0.4, { tipo: 'square', ate: 40, volume: 0.3 });
+        this._ruido(t, 0.35, { volume: 0.45, freqFiltro: 1200, ate: 80 });
+        break;
       case 'bloqueio': this._tom(1400, t, 0.12, { tipo: 'triangle', ate: 1100, volume: 0.15 }); break;
       case 'portal':
         this._arpejo(['G4', 'C5', 'E5', 'G5', 'C6'], t, 0.08, { tipo: 'sine', volume: 0.2 });

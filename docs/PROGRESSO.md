@@ -90,7 +90,7 @@
 - [x] (adiantado) TV Rambon, Experimento Caixa, Mr. Fun BOT jogáveis, com atributos do GDD (velocidade/força/pulo)
 - [x] (adiantado) Ataque próprio de cada um: soco (Guizinho), explosão de luz em área (TV), raio de longo alcance (Caixa), projétil explosivo (BOT)
 - [x] (adiantado) Tela de seleção com cartões, barras de atributos e o herói em 3D; escolha salva no aparelho; "Trocar herói" na vitória/derrota
-- [ ] Habilidades especiais (tecla K): dash de energia, onda de cores, campo tecnológico, tiro de canhão
+- [x] Habilidades especiais (tecla K / botão "Poder", `src/habilidades.js`): dash de energia (2,5 s; protegido, atropela inimigos), onda de cores (6 s; acerta em volta, deixa tontos, apaga tiros), campo tecnológico (escudo 4 s; recarga 9 s), tiro de canhão (4 s; dano 3, explosão grande, mira de 18 m). Barra de carga no PC e botão com carga no celular
 - [ ] Modelos e animações mais caprichados
 
 ### Fase 9 — Demais fases e vilões

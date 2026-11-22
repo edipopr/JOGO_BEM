@@ -48,6 +48,7 @@ src/entrada.js        teclado, mouse e toque (joystick virtual, botões Atacar/P
 src/camera.js         câmera em terceira pessoa (distancia, inclinacao, alturaAlvo)
 src/personagens.js    PERSONAGENS: 4 heróis (atributos 1–5 do GDD, tipo de ataque, modelo low-poly)
 src/jogador.js        jogador com o herói escolhido: movimento, pulo, ataques (soco/onda/raio/projetil), vida
+src/habilidades.js    habilidades especiais (K / botão Poder): dash, ondaCores, campo, canhao — campo "habilidade" em PERSONAGENS
 src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
 src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
 src/chefao.js         chefão Guardião da Floresta (ciclo golpe/investida/bolas → cansado; entra no GerenciadorInimigos via inimigos.adicionar)
