@@ -120,6 +120,7 @@
 <script type="module">
 import { URL_BANCO } from './src/config-online.js';
 
+const FASES_NOMES = { floresta: '1. Floresta dos Amigos', noite: '2. Floresta à Noite' };
 const NOMES = { guizinho: 'Guizinho', tvRambon: 'TV Rambon', experimentoCaixa: 'Experimento Caixa', funBot: 'Mr. Fun BOT' };
 const $ = (id) => document.getElementById(id);
 const demo = new URLSearchParams(location.search).has('demo');
@@ -239,11 +240,11 @@ function desenhar({ aparelhos, dias, partidas }) {
   }
   barras('fidelidade', faixas.map(([nome, v]) => [nome, v, ' aparelhos']));
 
-  $('ultimas').innerHTML = '<tr><th>Quando</th><th>Aparelho</th><th>Herói</th><th>Resultado</th><th>Tempo</th><th>Pontos</th></tr>'
+  $('ultimas').innerHTML = '<tr><th>Quando</th><th>Aparelho</th><th>Fase</th><th>Herói</th><th>Resultado</th><th>Tempo</th><th>Pontos</th></tr>'
     + (lp.slice(0, 20).map((p) => `<tr><td>${quando(p.data)}</td><td>${String(p.aparelho).slice(0, 6)}</td>`
-      + `<td>${NOMES[p.heroi] || p.heroi}</td><td class="${p.resultado === 'vitoria' ? 'ok' : 'nao'}">${p.resultado === 'vitoria' ? '✔ Vitória' : '✖ Derrota'}</td>`
+      + `<td>${FASES_NOMES[p.fase || 'floresta'] || p.fase}</td><td>${NOMES[p.heroi] || p.heroi}</td><td class="${p.resultado === 'vitoria' ? 'ok' : 'nao'}">${p.resultado === 'vitoria' ? '✔ Vitória' : '✖ Derrota'}</td>`
       + `<td>${duracao(p.segundos)}</td><td>${p.pontos ?? ''}</td></tr>`).join('')
-      || '<tr><td colspan="6">Nenhuma partida terminada ainda.</td></tr>');
+      || '<tr><td colspan="7">Nenhuma partida terminada ainda.</td></tr>');
 }
 
 async function atualizar() {

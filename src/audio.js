@@ -36,6 +36,22 @@ const MUSICAS = {
     baixo: padrao(`A2 . . . A2 . . . | D2 . . . D2 . . . | F2 . . . F2 . . . | E2 . . . E2 . . .`),
     bateria: padrao(`k . . h k . s . | k . . h k . s h`),
   },
+  // Floresta à Noite: calma, misteriosa, "caixinha de música"
+  noite: {
+    bpm: 100, volume: 0.42,
+    melodia: padrao(`E5 . B4 . G5 . F#5 E5 | D5 . A4 . F#5 . E5 D5 | C5 . G4 . E5 . D5 C5 | B4 . . . F#5 . . .
+                     E5 . B4 . G5 . A5 B5 | C6 . B5 A5 G5 . F#5 . | E5 . G5 . F#5 . D5 . | E5 . . . . . . .`),
+    baixo: padrao(`E2 . . . B2 . . . | D2 . . . A2 . . . | C2 . . . G2 . . . | B1 . . . F#2 . . .
+                   E2 . . . B2 . . . | A2 . . . E2 . . . | C2 . . . D2 . . . | E2 . . . B1 . . .`),
+    bateria: padrao(`k . . h . . s . | k . . h . h s .`),
+  },
+  // Monstro de Cristal: rápida e "brilhante"
+  chefaoCristal: {
+    bpm: 160, volume: 0.5,
+    melodia: padrao(`E5 B5 E6 B5 D6 B5 G5 B5 | C6 G5 E5 G5 B5 G5 D5 G5 | A5 E5 C6 E5 B5 E5 G5 E5 | F#5 B5 D#6 B5 F#5 D#5 B4 D#5`),
+    baixo: padrao(`E2 E2 . E3 E2 . E2 E3 | C2 C2 . C3 C2 . C2 C3 | A1 A1 . A2 A1 . A1 A2 | B1 B1 . B2 B1 . B1 B2`),
+    bateria: padrao(`k h s h k k s h | k h s h k s s s`),
+  },
   // Chefão: rápida, tensa (menor), graves fortes
   chefao: {
     bpm: 152, volume: 0.5,

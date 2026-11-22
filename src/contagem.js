@@ -5,7 +5,7 @@
 // Estrutura no banco:
 //   aparelhos/<id>  = { primeiraVez, ultimaVez, plataforma, instalado, partidas, tentativas, vitorias, derrotas, segundos }
 //   dias/<aaaa-mm-dd>/<id> = partidas iniciadas naquele dia
-//   partidas/<auto> = { aparelho, heroi, resultado, segundos, pontos, cristais, estrelas, data }
+//   partidas/<auto> = { aparelho, fase, heroi, resultado, segundos, pontos, cristais, estrelas, data }
 import { URL_BANCO } from './config-online.js';
 import { ehToque } from './entrada.js';
 
@@ -64,11 +64,11 @@ class Contagem {
     this._aparelho({ tentativas: somar() });
   }
 
-  terminou(resultado, { heroi, segundos, segundosNovos, pontos, cristais = 0, estrelas = 0 }) {
+  terminou(resultado, { fase = 'floresta', heroi, segundos, segundosNovos, pontos, cristais = 0, estrelas = 0 }) {
     const vitoria = resultado === 'vitoria';
     this._aparelho({ [vitoria ? 'vitorias' : 'derrotas']: somar(), segundos: somar(Math.round(segundosNovos)) });
     this._enviar('POST', 'partidas', {
-      aparelho: this.id, heroi, resultado, segundos: Math.round(segundos), pontos, cristais, estrelas, data: AGORA,
+      aparelho: this.id, fase, heroi, resultado, segundos: Math.round(segundos), pontos, cristais, estrelas, data: AGORA,
     });
   }
 }

@@ -51,7 +51,8 @@ src/jogador.js        jogador com o herói escolhido: movimento, pulo, ataques (
 src/habilidades.js    habilidades especiais (K / botão Poder): dash, ondaCores, campo, canhao — campo "habilidade" em PERSONAGENS
 src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
 src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
-src/chefao.js         chefão Guardião da Floresta (ciclo golpe/investida/bolas → cansado; entra no GerenciadorInimigos via inimigos.adicionar)
+src/chefoes/base.js   base dos chefões (dormir, acordar, ciclo de ataques, cansado/vulnerável, purificar, barreira); entra no GerenciadorInimigos
+src/chefoes/guardiao.js  Guardião da Floresta (fase 1)   src/chefoes/cristal.js  Monstro de Cristal (fase 2)
 src/salvamento.js     jogo salvo (Continuar) e recordes por fase (localStorage)
 src/configuracoes.js  configurações (volumes, câmera, gráficos) salvas no aparelho; configuracoes.aoMudar(f)
 src/estatisticas.js   painel do jogo: partidas/vitórias/derrotas/recordes salvos no aparelho (localStorage)
@@ -61,7 +62,9 @@ src/projeteis.js      tiros do jogador (explodem em área) e dos inimigos
 src/itens.js          cristais, corações, estrelas, checkpoints e portal de saída
 src/particulas.js     efeitos de partículas
 src/fases/construtor.js  ConstrutorFase: ilhas, blocos, plataformas móveis, trampolins, árvores, luz
-src/fases/floresta.js    Floresta dos Amigos (layout, inimigos, itens, checkpoints, avisos, portal)
+src/fases/index.js       FASES (ordem do jogo); cada fase devolve { id, nome, caixas, inimigos, itens, checkpoints, avisos, portal, arena, barreira, criarChefao, musicaChefao, musicaEm }
+src/fases/floresta.js    Fase 1: Floresta dos Amigos
+src/fases/noite.js       Fase 2: Floresta à Noite (luzes de noite, lanterna, vagalumes)
 src/pwa.js            service worker, atualização automática e botão "Instalar app"
 src/audio.js          som: efeitos e trilha sintetizados (Web Audio); som.efeito(nome), som.musica(nome|null), mudo salvo
 src/versao.js         versão exibida na tela inicial (trocada por ferramentas/nova_versao.sh)
@@ -75,5 +78,7 @@ docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 - Colisão: corpo = cilindro (raio, altura) contra caixas alinhadas aos eixos (`THREE.Box3`) em `fase.caixas`. Origem nos pés; modelos olham para +Z.
 - A fase anda no sentido **-Z**; o jogador começa olhando para -Z (angulo = π) com a câmera atrás (+Z).
 - Equilíbrio: a TV Rambon (pulo 2 → ~1,7 m de altura, vel. 4,5) é o herói mais limitado; todo salto obrigatório deve ser possível com ela (degraus ≤ 1,2 m, vãos ≤ 2,5 m).
-- Novos personagens: adicionar em `PERSONAGENS` (personagens.js). Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase.
+- Novos personagens: adicionar em `PERSONAGENS` (personagens.js). Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase + registrar em `src/fases/index.js` (e em sw.js). Novos chefões: subclasse de `ChefaoBase` com métodos `_ataque_<nome>`.
+- Cada fase tem seu "mundo" (cena própria) montado uma vez em main.js (`carregarFase(id)`); o jogador muda de cena com `jogador.mudarCena`.
+- Teste de fase: `ferramentas/teste.html?...&fase=noite` libera e escolhe a fase.
 - Combate: `jogador.alvos()` lista os alvos da mira automática; um alvo com `bloquear()` (chefão) pode recusar dano. O portal fica fechado (`portal.abrir(false)`) até o chefão ser derrotado.

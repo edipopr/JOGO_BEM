@@ -1,0 +1,10 @@
+// Lista das fases, na ordem do jogo. A fase seguinte libera quando a anterior é vencida.
+import { criarFlorestaDosAmigos } from './floresta.js';
+import { criarFlorestaNoite } from './noite.js';
+
+export const FASES = [
+  { id: 'floresta', nome: 'Floresta dos Amigos', criar: criarFlorestaDosAmigos },
+  { id: 'noite', nome: 'Floresta à Noite', criar: criarFlorestaNoite },
+];
+
+export const indiceFase = (id) => Math.max(0, FASES.findIndex((f) => f.id === id));

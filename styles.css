@@ -325,3 +325,5 @@ html, body {
 .hud-poder.pronto .carga-poder i { background: #ffd84a; }
 @media (pointer: coarse) { .hud-poder { display: none; } }
 @media (max-height: 420px) { .btn-poder { bottom: 128px; width: 64px; height: 64px; } }
+.escolha-fase { width: min(560px, 100%); }
+.tela .escolha-fase button:disabled { opacity: .5; cursor: default; }

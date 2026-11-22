@@ -29,7 +29,7 @@
       <span class="placar-item" id="pontos">0 pts</span>
     </div>
     <div id="chefao-barra" class="chefao-barra oculto">
-      <span>Guardião da Floresta</span>
+      <span id="chefao-nome">Guardião da Floresta</span>
       <div class="chefao-vida"><i id="chefao-vida"></i></div>
     </div>
     <div id="dica"></div>
@@ -52,14 +52,15 @@
     </div>
     <p id="recorde-fase" class="recorde-fase oculto"></p>
     <p id="dica-ios" class="dica-tela oculto">Para instalar no iPhone/iPad: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</p>
-    <p class="dica-tela">Atravesse a Floresta dos Amigos, pegue os cristais, ache as 3 estrelas escondidas e purifique o Guardião!</p>
-    <p class="versao">Protótipo — Fase 6 · versão <span id="versao"></span></p>
+    <p class="dica-tela">Atravesse as florestas, pegue os cristais, ache as estrelas escondidas e purifique os chefões!</p>
+    <p class="versao">Protótipo — 2 fases · versão <span id="versao"></span></p>
   </div>
 
   <div id="tela-selecao" class="tela tela-selecao oculto">
     <h3>Escolha seu herói</h3>
     <p id="descricao-personagem" class="descricao-personagem"></p>
     <div id="cartoes" class="cartoes"></div>
+    <div id="escolha-fase" class="segmentado escolha-fase"></div>
     <div class="botoes">
       <button id="btn-voltar" class="secundario">Voltar</button>
       <button id="btn-comecar">Começar!</button>
@@ -109,7 +110,8 @@
     <div class="botoes">
       <button id="btn-trocar-vitoria" class="secundario">Trocar herói</button>
       <button id="btn-menu-vitoria" class="secundario">🏠 Menu</button>
-      <button id="btn-de-novo">Jogar de novo</button>
+      <button id="btn-de-novo" class="secundario">Jogar de novo</button>
+      <button id="btn-proxima" class="oculto">Próxima fase ▶</button>
     </div>
   </div>
 

@@ -63,6 +63,15 @@ export class Jogador {
     this.reiniciar(true);
   }
 
+  /** Passa o herói para a cena de outra fase. */
+  mudarCena(cena, pontoInicial) {
+    this.cena.remove(this.modelo, this.efeitos.grupo);
+    this.cena = cena;
+    cena.add(this.modelo, this.efeitos.grupo);
+    this.pontoInicial.copy(pontoInicial);
+    this.pontoRenascer.copy(pontoInicial);
+  }
+
   definirPersonagem(id) {
     if (this.modelo) this.cena.remove(this.modelo);
     this.id = PERSONAGENS[id] ? id : 'guizinho';

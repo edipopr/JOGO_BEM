@@ -8,13 +8,12 @@ import { GerenciadorInimigos } from './inimigo.js';
 import { Particulas } from './particulas.js';
 import { Projeteis } from './projeteis.js';
 import { GerenciadorItens, Checkpoints, Portal } from './itens.js';
-import { criarFlorestaDosAmigos } from './fases/floresta.js';
+import { FASES, indiceFase } from './fases/index.js';
 import { configurarApp } from './pwa.js';
 import { VERSAO } from './versao.js';
 import { som } from './audio.js';
 import { estatisticas } from './estatisticas.js';
 import { contagem } from './contagem.js';
-import { Chefao } from './chefao.js';
 import { configuracoes } from './configuracoes.js';
 import { salvamento } from './salvamento.js';
 import { Habilidades, HABILIDADES } from './habilidades.js';
@@ -24,8 +23,12 @@ configurarApp({ podeRecarregar: () => !['jogando', 'caindo', 'pausado'].includes
 document.getElementById('versao').textContent = VERSAO;
 
 const PONTOS = { cristal: 10, estrela: 100 };
-const FASE_ID = 'floresta'; // chave da fase no salvamento
 const CHAVE_PERSONAGEM = 'guizinho.personagem';
+
+/** Fase do jogo salvo (para já abrir nela) ou a primeira. */
+function lerFaseInicial() {
+  return salvamento.partida()?.fase || FASES[0].id;
+}
 
 function lerPersonagemSalvo() {
   try { return localStorage.getItem(CHAVE_PERSONAGEM) || 'guizinho'; } catch { return 'guizinho'; }
@@ -43,7 +46,6 @@ renderizador.shadowMap.enabled = true;
 renderizador.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderizador.domElement);
 
-const cena = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 220);
 /** Celular em pé: abre mais o campo de visão para os monstros não ficarem tão "em cima". */
 function ajustarCamera() {
@@ -53,22 +55,53 @@ function ajustarCamera() {
 }
 ajustarCamera();
 
-const fase = criarFlorestaDosAmigos(cena);
+// ----- Mundos: cada fase tem sua cena, inimigos, itens, chefão... (montados uma vez e guardados) -----
+let cena, fase, inimigos, itens, checkpoints, portal, particulas, projeteis, habilidades, chefao, corpos;
+let totalCristais = 0, totalEstrelas = 0;
+const mundos = new Map();
+
+function construirMundo(id) {
+  const def = FASES[indiceFase(id)];
+  const novaCena = new THREE.Scene();
+  const f = def.criar(novaCena);
+  const m = {
+    cena: novaCena, fase: f,
+    particulas: new Particulas(novaCena),
+    inimigos: new GerenciadorInimigos(novaCena, f.inimigos),
+    itens: new GerenciadorItens(novaCena, f.itens),
+    checkpoints: new Checkpoints(novaCena, f.checkpoints),
+    portal: new Portal(novaCena, f.portal),
+    projeteis: new Projeteis(novaCena),
+    habilidades: new Habilidades(novaCena),
+  };
+  m.chefao = f.criarChefao(novaCena, m.particulas, f);
+  m.inimigos.adicionar(m.chefao); // entra no combate como um inimigo (golpes, projéteis, mira)
+  m.portal.abrir(false);           // o portal só abre quando o chefão for derrotado
+  m.chefao.avisar = aoEventoChefao;
+  return m;
+}
+
+/** Troca a fase atual (monta o mundo na primeira vez). */
+function carregarFase(id) {
+  if (fase && fase.id === id) return;
+  if (!mundos.has(id)) mundos.set(id, construirMundo(id));
+  ({ cena, fase, particulas, inimigos, itens, checkpoints, portal, projeteis, habilidades, chefao } = mundos.get(id));
+  totalCristais = itens.total('cristal');
+  totalEstrelas = itens.total('estrela');
+  if (jogador) {
+    jogador.mudarCena(cena, fase.pontoInicial);
+    corpos = [jogador, ...inimigos.lista]; // carregados pelas plataformas móveis
+  }
+  vidaMostrada = -1;
+}
+
 const entrada = new Entrada(container);
-const jogador = new Jogador(cena, fase.pontoInicial, lerPersonagemSalvo());
-const inimigos = new GerenciadorInimigos(cena, fase.inimigos);
-const itens = new GerenciadorItens(cena, fase.itens);
-const checkpoints = new Checkpoints(cena, fase.checkpoints);
-const portal = new Portal(cena, fase.portal);
-const particulas = new Particulas(cena);
-const projeteis = new Projeteis(cena);
 const cameraSeguidora = new CameraSeguidora(camera);
-const habilidades = new Habilidades(cena);
-const chefao = new Chefao(cena, fase.arena, particulas, { barreira: fase.barreira, caixas: fase.caixas });
-inimigos.adicionar(chefao); // entra no combate como um inimigo (golpes, projéteis, mira)
-portal.abrir(false);         // o portal só abre quando o chefão for derrotado
-const corpos = [jogador, ...inimigos.lista]; // carregados pelas plataformas móveis
-jogador.alvos = () => inimigos.lista; // para a mira automática
+let jogador = null;
+carregarFase(lerFaseInicial());
+jogador = new Jogador(cena, fase.pontoInicial, lerPersonagemSalvo());
+corpos = [jogador, ...inimigos.lista];
+jogador.alvos = () => inimigos.lista; // para a mira automática (sempre a lista da fase atual)
 cameraSeguidora.atualizar(jogador.posicao, 0, true);
 
 // ----- Elementos da interface -----
@@ -98,15 +131,13 @@ function registrarFim(resultado) {
     tempoNovo: partida.tempo - registrado.tempo, inimigosNovos: inimigos.derrotados - registrado.inimigos,
   });
   contagem.terminou(resultado, {
-    heroi: jogador.id, segundos: partida.tempo, segundosNovos: partida.tempo - registrado.tempo,
+    fase: fase.id, heroi: jogador.id, segundos: partida.tempo, segundosNovos: partida.tempo - registrado.tempo,
     pontos: pontosTotais(), cristais: partida.cristais, estrelas: partida.estrelas,
   });
   registrado.tempo = partida.tempo;
   registrado.inimigos = inimigos.derrotados;
 }
 const avisosVistos = new Set();
-const totalCristais = itens.total('cristal');
-const totalEstrelas = itens.total('estrela');
 
 function mostrarTela(nome) {
   for (const [chave, el] of Object.entries(telas)) el.classList.toggle('oculto', chave !== nome);
@@ -135,7 +166,7 @@ function pulsar(el) {
 
 const pontosTotais = () => partida.pontos + inimigos.pontos;
 
-let vidaMostrada = -1;
+var vidaMostrada = -1; // var: carregarFase() zera antes desta linha rodar
 function atualizarHud() {
   if (jogador.vida !== vidaMostrada) {
     vidaMostrada = jogador.vida;
@@ -162,6 +193,7 @@ function atualizarHud() {
   $('chefao-barra').classList.toggle('oculto', !barraVisivel);
   if (barraVisivel) {
     $('chefao-vida').style.width = `${(chefao.vida / chefao.vidaMax) * 100}%`;
+    $('chefao-nome').textContent = chefao.nome;
     $('chefao-barra').classList.toggle('vulneravel', chefao.estado === 'vulneravel');
   }
 }
@@ -190,11 +222,34 @@ function escolherPersonagem(id) {
   $('descricao-personagem').textContent = PERSONAGENS[jogador.id].descricao;
 }
 
+// ----- Escolha da fase -----
+let faseEscolhida = lerFaseInicial();
+/** A fase i libera quando a anterior foi vencida. */
+const faseLiberada = (i) => i === 0 || !!salvamento.recordes(FASES[i - 1].id);
+function montarEscolhaFase() {
+  if (!faseLiberada(indiceFase(faseEscolhida))) faseEscolhida = FASES[0].id;
+  $('escolha-fase').innerHTML = FASES.map((d, i) => {
+    const livre = faseLiberada(i);
+    return `<button data-id="${d.id}" ${livre ? '' : 'disabled'} class="${d.id === faseEscolhida ? 'ativo' : ''}">`
+      + `${livre ? '' : '🔒 '}${i + 1}. ${d.nome}</button>`;
+  }).join('');
+  for (const b of $('escolha-fase').querySelectorAll('button:not([disabled])')) {
+    b.addEventListener('click', () => {
+      faseEscolhida = b.dataset.id;
+      carregarFase(faseEscolhida); // o cenário da fase aparece ao fundo
+      jogador.reiniciar(true);
+      montarEscolhaFase();
+    });
+  }
+}
+
 /** modo 'jogar' = botão Começar; modo 'escolher' (menu Personagens) = botão Pronto, volta ao menu. */
 function abrirSelecao(modo = 'jogar') {
   estado = 'selecao';
   $('btn-comecar').classList.toggle('oculto', modo !== 'jogar');
   $('btn-pronto').classList.toggle('oculto', modo === 'jogar');
+  $('escolha-fase').classList.toggle('oculto', modo !== 'jogar');
+  if (modo === 'jogar') { montarEscolhaFase(); carregarFase(faseEscolhida); }
   jogador.reiniciar(true);
   escolherPersonagem(jogador.id);
   cameraSeguidora.distancia = 6;
@@ -237,6 +292,8 @@ function comecarPartida(voltarAoInicio) {
 function continuarPartida() {
   const s = salvamento.partida();
   if (!s) return;
+  faseEscolhida = s.fase || FASES[0].id;
+  carregarFase(faseEscolhida);
   zerarFase();
   Object.assign(partida, { cristais: s.cristais, estrelas: s.estrelas, pontos: s.pontos, tempo: s.tempo });
   for (const i of s.avisos || []) if (fase.avisos[i]) avisosVistos.add(fase.avisos[i]);
@@ -257,9 +314,9 @@ function continuarPartida() {
 function salvarProgresso() {
   if (!['jogando', 'pausado', 'caindo', 'derrota'].includes(estado)) return;
   salvamento.salvarPartida({
-    fase: FASE_ID,
+    fase: fase.id,
     checkpoints: checkpoints.ativos(), checkpoint: checkpoints.ultimo,
-    itens: itens.coletados(),
+    itens: itens.coletados(), totalCristais, totalEstrelas,
     cristais: partida.cristais, estrelas: partida.estrelas, pontos: partida.pontos, tempo: partida.tempo,
     pontosInimigos: inimigos.pontos, derrotados: inimigos.derrotados,
     chefaoDerrotado: chefao.derrotado,
@@ -311,18 +368,17 @@ function aoAtivarCheckpoint(posicao) {
   salvarProgresso();
 }
 
-let tempoAbrirPortal = 0;
-// Eventos do chefão (chefao.js)
-chefao.avisar = (evento, texto) => {
-  if (evento === 'acordou') mostrarMensagem('O Guardião da Floresta acordou contaminado!', 2.5);
-  else if (evento === 'dica') mostrarMensagem(texto, 2.5);
-  else if (evento === 'vulneravel') mostrarMensagem('Ele cansou! Ataque o coração brilhante!', 2.5);
-  else if (evento === 'derrotado') {
-    mostrarMensagem('Você purificou o Guardião! O portal se abriu!', 4);
+var tempoAbrirPortal = 0; // var: usado por aoEventoChefao, que pode rodar antes desta linha
+/** Eventos dos chefões (src/chefoes/): 'acordou', 'dica', 'vulneravel', 'derrotado' + texto. */
+function aoEventoChefao(evento, texto) {
+  if (evento === 'derrotado') {
+    mostrarMensagem(texto, 4);
     tempoAbrirPortal = 2.6; // o portal aparece depois da purificação (ver passo())
     salvarProgresso();
+  } else {
+    mostrarMensagem(texto, 2.5);
   }
-};
+}
 
 function verificarAvisos() {
   for (const a of fase.avisos) {
@@ -345,8 +401,8 @@ function vencer() {
   $('objetivos').innerHTML = metas.map(([texto, ok]) =>
     `<li class="${ok ? '' : 'falhou'}"><span class="estrela-meta">★</span>${texto}</li>`).join('');
   // Recordes da fase (salvos no aparelho) — a partida em andamento acabou
-  const antes = salvamento.recordes(FASE_ID);
-  salvamento.registrarVitoria(FASE_ID, {
+  const antes = salvamento.recordes(fase.id);
+  salvamento.registrarVitoria(fase.id, {
     pontos: pontosTotais(), tempo: partida.tempo, estrelas: partida.estrelas, todosCristais: partida.cristais === totalCristais,
   });
   salvamento.apagarPartida();
@@ -359,6 +415,9 @@ function vencer() {
     <span>Pontos</span><b>${pontosTotais()}</b>
     ${novoRecorde ? '<span>🏆 Novo recorde!</span><b>' + pontosTotais() + '</b>' : `<span>Recorde</span><b>${antes.melhorPontos}</b>`}`;
   registrarFim('vitoria');
+  const proxima = FASES[indiceFase(fase.id) + 1];
+  $('btn-proxima').classList.toggle('oculto', !proxima);
+  $('btn-de-novo').classList.toggle('secundario', !!proxima);
   mostrarTela('vitoria');
   som.efeito('vitoria');
 }
@@ -399,14 +458,14 @@ function atualizarMenu() {
   $('btn-jogar').classList.toggle('secundario', !!s); // com jogo salvo, "Continuar" vira o botão principal
   if (s) {
     const onde = s.checkpoint >= 0 ? `checkpoint ${s.checkpoint + 1}` : 'início';
-    $('info-continuar').textContent = `${fase.nome} · ${onde} · ◆ ${s.cristais}/${totalCristais} · ★ ${s.estrelas}/${totalEstrelas} · ${relogioTexto(s.tempo)}`;
+    const nome = FASES[indiceFase(s.fase)].nome;
+    $('info-continuar').textContent = `${nome} · ${onde} · ◆ ${s.cristais}/${s.totalCristais ?? '?'} · ★ ${s.estrelas}/${s.totalEstrelas ?? 3} · ${relogioTexto(s.tempo)}`;
   }
-  const r = salvamento.recordes(FASE_ID);
-  $('recorde-fase').classList.toggle('oculto', !r);
-  if (r) {
-    $('recorde-fase').innerHTML = `${fase.nome}: <b>✔ concluída</b> · ★ ${r.maxEstrelas}/${totalEstrelas}`
-      + `${r.todosCristais ? ' · ◆ todos' : ''} · recorde <b>${r.melhorPontos} pts</b> · melhor tempo ${relogioTexto(r.melhorTempo)}`;
-  }
+  // Recordes de cada fase já vencida
+  const linhas = FASES.map((d) => [d, salvamento.recordes(d.id)]).filter(([, r]) => r);
+  $('recorde-fase').classList.toggle('oculto', !linhas.length);
+  $('recorde-fase').innerHTML = linhas.map(([d, r]) => `${d.nome}: <b>✔</b> · ★ ${r.maxEstrelas}/3`
+    + `${r.todosCristais ? ' · ◆ todos' : ''} · recorde <b>${r.melhorPontos} pts</b> · ${relogioTexto(r.melhorTempo)}`).join('<br>');
 }
 
 function irParaMenu() {
@@ -514,6 +573,13 @@ $('btn-painel-zerar').addEventListener('click', () => {
   if (confirm('Zerar todas as estatísticas deste aparelho?')) { estatisticas.zerar(); estatisticas.mostrar($); }
 });
 $('btn-de-novo').addEventListener('click', () => comecarPartida(true));
+$('btn-proxima').addEventListener('click', () => {
+  const proxima = FASES[indiceFase(fase.id) + 1];
+  if (!proxima) return;
+  faseEscolhida = proxima.id;
+  carregarFase(proxima.id);
+  comecarPartida(true);
+});
 $('btn-tentar').addEventListener('click', () => comecarPartida(false));
 $('btn-recomecar').addEventListener('click', () => comecarPartida(true));
 $('btn-trocar-vitoria').addEventListener('click', () => abrirSelecao());
@@ -525,7 +591,12 @@ window.addEventListener('resize', () => {
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console
-window.guizinhoDebug = { jogador, inimigos, habilidades, chefao, portal, fase, som, contagem, salvamento, itens, checkpoints, passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; } };
+window.guizinhoDebug = {
+  jogador, som, contagem, salvamento, carregarFase,
+  get inimigos() { return inimigos; }, get habilidades() { return habilidades; }, get chefao() { return chefao; },
+  get portal() { return portal; }, get fase() { return fase; }, get itens() { return itens; }, get checkpoints() { return checkpoints; },
+  passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; },
+};
 
 // ----- Loop principal -----
 const relogio = new THREE.Clock();
@@ -565,7 +636,7 @@ function passo(dt, desenhar = true) {
     if (estado === 'jogando') {
       partida.tempo += dt;
       // Trilha: alegre na floresta, misteriosa no Bosque Escuro (fase.musicaEm)
-      som.musica(chefao.acordado ? 'chefao' : fase.musicaEm(jogador.posicao));
+      som.musica(chefao.acordado ? (fase.musicaChefao || 'chefao') : fase.musicaEm(jogador.posicao));
       habilidades.atualizar(dt, { jogador, entrada, eixos: cameraSeguidora.eixos(), inimigos, projeteis, particulas });
       jogador.atualizar(dt, entrada, cameraSeguidora.eixos(), fase, projeteis);
       if (jogador.quicou) particulas.explosao(jogador.posicao, 0xff6b9d, 10, 4);

@@ -2,7 +2,7 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 6 concluída (menu principal, pausa, salvamento, configurações)
+- **Fase atual:** Fase 8 (habilidades) concluída + **segunda fase "Floresta à Noite" com o chefão Monstro de Cristal** (adiantado da Fase 9)
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/ (versão aparece na tela inicial)
 - **Aguardando retorno do usuário:**
   - Dificuldade do chefão (9 de vida, 3 golpes por cansaço; ajustar VIDA/DANO_POR_CANSACO/TEMPO_VULNERAVEL em `src/chefao.js`)
@@ -10,7 +10,7 @@
   - Se o botão "Jogar de novo" aparece no celular deitado
   - **Contagem online LIGADA** (banco guizinho-3685f, Firebase). Painel: https://edipopr.github.io/JOGO_BEM/painel.html. Há 1 aparelho de teste "teste-claude" que o usuário pode apagar no console
   - Volume/qualidade dos sons e da música (Claude não consegue ouvir)
-- **Próximo passo:** Fase 7 está quase toda feita (falta só testar em vários aparelhos, com o usuário). Sugestão: **Fase 8 — habilidades especiais (tecla K / botão na tela)**: dash de energia, onda de cores, campo tecnológico, tiro de canhão.
+- **Próximo passo:** ouvir o retorno do usuário sobre a Floresta à Noite e o Monstro de Cristal (dificuldade, visual). Depois: Fase 9 continua (próximas fases do GDD: Planeta Guizinho, Laboratório Perdido...) ou modelos/animações mais caprichados (Fase 8).
 - **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
 
 ## Fases
@@ -94,6 +94,11 @@
 - [ ] Modelos e animações mais caprichados
 
 ### Fase 9 — Demais fases e vilões
+- [x] (adiantado, pedido do usuário) **Fase 2: Floresta à Noite** (`src/fases/noite.js`): clareira enluarada, pedras flutuantes, Bosque dos Vagalumes, cogumelo-elevador, Planalto dos Cristais (trampolim secreto), Lago Escuro, Bosque Sombrio, Arena de Cristal; lanterna no herói, lua, vagalumes, cogumelos brilhantes; 27 cristais, 3 estrelas, 4 corações, 4 checkpoints; música "noite"
+- [x] **Chefão Monstro de Cristal** (`src/chefoes/cristal.js`): chuva de cristais (círculos de aviso), linhas de espinhos (3 em leque depois do 1º cansaço), anéis de estilhaços; 12 de vida, 4 golpes por cansaço; música própria
+- [x] Chefões com base comum (`src/chefoes/base.js`); Guardião em `src/chefoes/guardiao.js`
+- [x] Várias fases: `src/fases/index.js` (FASES); escolha da fase na seleção (a 2 libera ao vencer a 1); "Próxima fase ▶" na vitória; jogo salvo e recordes por fase; contagem online registra a fase
+- [x] Correção: o modelo do chefão aparecia no início da fase (posição 0,0,0) antes da luta
 - [ ] Planeta Guizinho, Laboratório Perdido, Circo do Ioro, Floresta do Pesadelo, Castelo
 - [ ] Experimento Caixa 2, Ioro, Rei do Pesadelo
 - [ ] Sistema de infecção
@@ -112,3 +117,4 @@
 - **2026-11-21:** Trilha sonora e efeitos sintetizados; orientação horizontal no celular (aviso, trava, manifest).
 - **2026-11-21:** Ajustes (5 vidas, mira automática, tela de vitória deitada, painel de partidas) e Fase 5 (chefão Guardião da Floresta).
 - **2026-11-21:** Contagem online (Firebase) + painel online; Fase 6 (menu, pausa, salvamento, configurações).
+- **2026-11-21:** Fase 8 (habilidades especiais) e segunda fase (Floresta à Noite + Monstro de Cristal); suporte a várias fases.

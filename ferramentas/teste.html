@@ -8,6 +8,7 @@ iframe{border:0;width:100%;height:100%}
 <div id="log"></div>
 <script>
 // Página de teste (abrir via servidor local). Ex.: ferramentas/teste.html?heroi=funBot&roteiro=W:2,J,W:1
+// fase=noite → escolhe a fase (libera todas)
 // roteiro: lista de ações; "W:2" = segura W por 2 s; "J" = aperta J; "espera:1" = espera 1 s.
 const q = new URLSearchParams(location.search);
 const f = document.getElementById('f');
@@ -26,8 +27,12 @@ f.addEventListener('load', () => {
     log(`${rotulo}: ${g().estado} pos=(${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}) vida=${j.vida} derrotados=${g().inimigos.derrotados}` + (g().chefao ? ` chefao=${g().chefao.estado}/${g().chefao.vida}` : ``));
   };
   setTimeout(() => {
+    if (q.get('fase')) { // libera as fases para o teste
+      w.localStorage.setItem('guizinho.recordes', JSON.stringify({ floresta: { concluida: true, melhorPontos: 0, melhorTempo: 999, maxEstrelas: 0, todosCristais: false } }));
+    }
     d.getElementById('btn-jogar').click();
     if (q.get('heroi')) d.querySelector(`.cartao[data-id="${q.get('heroi')}"]`).click();
+    if (q.get('fase')) d.querySelector(`#escolha-fase button[data-id="${q.get('fase')}"]`).click();
     if (!q.get('roteiro')) return;
     d.getElementById('btn-comecar').click();
     if (q.get('teleporte')) {

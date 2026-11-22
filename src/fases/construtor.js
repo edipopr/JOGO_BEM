@@ -38,11 +38,19 @@ export class ConstrutorFase {
   }
 
   // ---------- Céu e luz ----------
-  luzes({ ceu = 0x7ec8ff, nevoa = [45, 110] } = {}) {
+  /**
+   * Dia (padrão) ou noite: ceu/nevoa = cor e distâncias; hemi = [céu, chão, intensidade];
+   * sol = [cor, intensidade] (à noite, a luz da lua); lanterna = luz que acompanha o herói.
+   */
+  luzes({ ceu = 0x7ec8ff, nevoa = [45, 110], hemi = [0xffffff, 0x4a7a3a, 1.1], sol: corSol = [0xfff2d6, 1.6], lanterna = null } = {}) {
     this.cena.background = new THREE.Color(ceu);
     this.cena.fog = new THREE.Fog(ceu, nevoa[0], nevoa[1]);
-    this.cena.add(new THREE.HemisphereLight(0xffffff, 0x4a7a3a, 1.1));
-    const sol = new THREE.DirectionalLight(0xfff2d6, 1.6);
+    this.cena.add(new THREE.HemisphereLight(...hemi));
+    if (lanterna) {
+      this.lanterna = new THREE.PointLight(lanterna.cor, lanterna.intensidade, lanterna.distancia, 1.2);
+      this.cena.add(this.lanterna);
+    }
+    const sol = new THREE.DirectionalLight(...corSol);
     sol.castShadow = true;
     sol.shadow.mapSize.set(1024, 1024);
     Object.assign(sol.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 100 });
@@ -130,6 +138,63 @@ export class ConstrutorFase {
     this.malha(new THREE.IcosahedronGeometry(0.09, 0), cores[Math.floor(this.sorte() * 4)], x, chao + 0.32, z, false);
   }
 
+  // ---------- Decoração da noite ----------
+  /** Cogumelo que brilha no escuro. */
+  cogumeloBrilhante(x, z, chao, cor = 0x5af0ff, tamanho = 1) {
+    if (!this._matBrilho) this._matBrilho = new Map();
+    if (!this._matBrilho.has(cor)) {
+      this._matBrilho.set(cor, new THREE.MeshLambertMaterial({ color: cor, emissive: cor, emissiveIntensity: 0.9, flatShading: true }));
+    }
+    const t = tamanho;
+    this.malha(new THREE.CylinderGeometry(0.1 * t, 0.14 * t, 0.5 * t, 6), 0xd8d0ff, x, chao + 0.25 * t, z, false);
+    const chapeu = new THREE.Mesh(new THREE.SphereGeometry(0.38 * t, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), this._matBrilho.get(cor));
+    chapeu.position.set(x, chao + 0.48 * t, z);
+    this.cena.add(chapeu);
+  }
+
+  /** Formação de cristais brilhantes (só decoração). */
+  cristais(x, z, chao, escala = 1, cor = 0x9f6bff) {
+    if (!this._matCristal) this._matCristal = new Map();
+    if (!this._matCristal.has(cor)) {
+      this._matCristal.set(cor, new THREE.MeshLambertMaterial({ color: cor, emissive: cor, emissiveIntensity: 0.45, flatShading: true }));
+    }
+    for (let i = 0; i < 4; i++) {
+      const alt = (0.8 + this.sorte() * 1.4) * escala;
+      const c = new THREE.Mesh(new THREE.ConeGeometry(0.22 * escala + this.sorte() * 0.15 * escala, alt, 5), this._matCristal.get(cor));
+      c.position.set(x + (this.sorte() - 0.5) * 0.9 * escala, chao + alt / 2 - 0.05, z + (this.sorte() - 0.5) * 0.9 * escala);
+      c.rotation.set((this.sorte() - 0.5) * 0.6, this.sorte() * 3, (this.sorte() - 0.5) * 0.6);
+      c.castShadow = true;
+      this.cena.add(c);
+    }
+  }
+
+  /** Lua grande no céu (não recebe névoa). */
+  lua(x, y, z, raio = 6) {
+    const lua = new THREE.Mesh(new THREE.SphereGeometry(raio, 16, 12), new THREE.MeshBasicMaterial({ color: 0xf4f1d0, fog: false }));
+    lua.position.set(x, y, z);
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(raio * 1.5, 16, 12),
+      new THREE.MeshBasicMaterial({ color: 0xb8c8ff, transparent: true, opacity: 0.15, fog: false }));
+    halo.position.copy(lua.position);
+    this.cena.add(lua, halo);
+  }
+
+  /** Vagalumes piscando numa área (pontinhos amarelos que flutuam). */
+  vagalumes(minX, maxX, minZ, maxZ, chao, quantidade = 40) {
+    const pos = new Float32Array(quantidade * 3);
+    const base = [];
+    for (let i = 0; i < quantidade; i++) {
+      const b = { x: minX + this.sorte() * (maxX - minX), y: chao + 0.5 + this.sorte() * 3, z: minZ + this.sorte() * (maxZ - minZ), f: this.sorte() * 10 };
+      base.push(b);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const pontos = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xfff27a, size: 0.18, transparent: true, opacity: 0.9, fog: false }));
+    pontos.frustumCulled = false;
+    this.cena.add(pontos);
+    if (!this.enxames) this.enxames = [];
+    this.enxames.push({ pontos, base });
+  }
+
   // ---------- A cada quadro ----------
   /** Move as plataformas e carrega quem está em cima. foco = posição para a sombra seguir. */
   atualizar(dt, corpos, foco) {
@@ -145,6 +210,16 @@ export class ConstrutorFase {
         if (c.apoio === p.caixa) c.posicao.add(this._delta);
       }
     }
+    for (const { pontos, base } of this.enxames || []) {
+      const pos = pontos.geometry.attributes.position;
+      base.forEach((b, i) => {
+        const t = this.tempo * 0.7 + b.f;
+        pos.setXYZ(i, b.x + Math.sin(t) * 0.8, b.y + Math.sin(t * 1.7) * 0.4, b.z + Math.cos(t * 0.8) * 0.8);
+      });
+      pos.needsUpdate = true;
+      pontos.material.opacity = 0.65 + Math.sin(this.tempo * 3) * 0.3;
+    }
+    if (this.lanterna && foco) this.lanterna.position.set(foco.x, foco.y + 3, foco.z + 1);
     if (this.sol && foco) {
       this.sol.position.set(foco.x + 15, foco.y + 30, foco.z + 12);
       this.sol.target.position.copy(foco);

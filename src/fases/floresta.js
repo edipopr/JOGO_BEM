@@ -3,6 +3,7 @@
 // O jogo anda no sentido -Z (para "frente", longe da câmera inicial).
 import * as THREE from 'three';
 import { ConstrutorFase } from './construtor.js';
+import { Guardiao } from '../chefoes/guardiao.js';
 
 export function criarFlorestaDosAmigos(cena) {
   const f = new ConstrutorFase(cena, 7);
@@ -126,6 +127,7 @@ export function criarFlorestaDosAmigos(cena) {
   ];
 
   return {
+    id: 'floresta',
     nome: 'Floresta dos Amigos',
     caixas: f.caixas,
     trampolins: f.trampolins,
@@ -133,6 +135,9 @@ export function criarFlorestaDosAmigos(cena) {
     portal: new THREE.Vector3(0, 12, -137),
     arena: new THREE.Vector3(0, 12, -131), // onde o chefão dorme
     barreira, // raízes que fecham a arena durante a luta
+    criarChefao: (cenaFase, particulas, fase) =>
+      new Guardiao(cenaFase, fase.arena, particulas, { barreira: fase.barreira, caixas: fase.caixas }),
+    musicaChefao: 'chefao',
     pontoInicial: new THREE.Vector3(0, 0, 3),
     atualizar: (dt, corpos, foco) => f.atualizar(dt, corpos, foco),
     /** Música conforme a área: Bosque Escuro (z entre -88 e -118) é misterioso. */
