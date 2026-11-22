@@ -168,9 +168,79 @@ export class ConstrutorFase {
     }
   }
 
+  // ---------- Pesadelo ----------
+  /** Poça de gosma: infecta quem pisa (fases com infeccao). */
+  poca(x, z, chao, raio = 1.6) {
+    const m = new THREE.Mesh(new THREE.CircleGeometry(raio, 18), new THREE.MeshLambertMaterial({ color: 0x9dff3d, emissive: 0x4a8a0a, transparent: true, opacity: 0.75 }));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, chao + 0.04, z);
+    this.cena.add(m);
+    (this.pocas ||= []).push({ m, x, z, chao, raio });
+  }
+
+  /** Árvore seca e torta. */
+  arvoreMorta(x, z, chao) {
+    const s = this.sorte, cor = s() > 0.5 ? 0x3a2834 : 0x2c1f2e;
+    const alt = 2.6 + s() * 1.6;
+    const tronco = this.malha(new THREE.CylinderGeometry(0.16, 0.42, alt, 6), cor, x, chao + alt / 2, z);
+    tronco.rotation.z = (s() - 0.5) * 0.3;
+    this.caixas.push(new THREE.Box3(new THREE.Vector3(x - 0.35, chao, z - 0.35), new THREE.Vector3(x + 0.35, chao + alt, z + 0.35)));
+    for (let i = 0; i < 4; i++) {
+      const a = s() * 6.28, c = 0.9 + s() * 0.9;
+      const g = this.malha(new THREE.ConeGeometry(0.1, c, 4), cor, x + Math.cos(a) * 0.5, chao + alt * (0.6 + i * 0.12), z + Math.sin(a) * 0.5);
+      g.rotation.set(Math.sin(a) * 1, 0, -Math.cos(a) * 1);
+    }
+  }
+
+  /** Árvore com um olho que brilha. */
+  olhoDeArvore(x, z, chao) {
+    this.arvoreMorta(x, z, chao);
+    const o = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: 0xc6ff3d }));
+    o.position.set(x, chao + 1.6, z + 0.3);
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 4), new THREE.MeshBasicMaterial({ color: 0x0a0010 }));
+    p.position.z = 0.17;
+    o.add(p);
+    this.cena.add(o);
+    (this.olhosArvore ||= []).push(o);
+  }
+
+  /** Esporos roxos flutuando. */
+  esporos(minX, maxX, minZ, maxZ, minY, maxY, quantidade = 100) {
+    this.bolhas(minX, maxX, minZ, maxZ, minY, maxY, quantidade, 0xd08bff);
+  }
+
+  /** Bola de ferro que balança (pêndulo) atravessando o caminho em x. */
+  pendulo(x, z, chao, { amplitude = 3, velocidade = 1.8, fase = 0 } = {}) {
+    const g = new THREE.Group();
+    const corda = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 6, 5), this.material(0x2a2a36));
+    corda.position.y = -3;
+    const bola = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), this.material(0x3a3a4a));
+    bola.position.y = -6;
+    bola.castShadow = true;
+    for (const [dx, dy, dz, rx, rz] of [[0.95, 0, 0, 0, -1.57], [-0.95, 0, 0, 0, 1.57], [0, -0.95, 0, 3.14, 0], [0, 0, 0.95, 1.57, 0], [0, 0, -0.95, -1.57, 0]]) {
+      const e = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.45, 5), this.material(0xb8c4e0));
+      e.position.set(dx, dy, dz);
+      e.rotation.set(rx, 0, rz);
+      bola.add(e);
+    }
+    g.add(corda, bola);
+    g.position.set(x, chao + 7, z);
+    this.cena.add(g);
+    (this.pendulos ||= []).push({ g, x, z, chao, amplitude, velocidade, fase });
+  }
+
+  /** Tocha com fogo roxo. */
+  tocha(x, y, z) {
+    this.malha(new THREE.CylinderGeometry(0.08, 0.12, 0.7, 5), 0x3a2a1a, x, y, z, false);
+    const fogo = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.55, 6), new THREE.MeshBasicMaterial({ color: 0xff6bd0 }));
+    fogo.position.set(x, y + 0.6, z);
+    this.cena.add(fogo);
+    (this.fogos ||= []).push(fogo);
+  }
+
   /** Lua grande no céu (não recebe névoa). */
-  lua(x, y, z, raio = 6) {
-    const lua = new THREE.Mesh(new THREE.SphereGeometry(raio, 16, 12), new THREE.MeshBasicMaterial({ color: 0xf4f1d0, fog: false }));
+  lua(x, y, z, raio = 6, cor = 0xf4f1d0) {
+    const lua = new THREE.Mesh(new THREE.SphereGeometry(raio, 16, 12), new THREE.MeshBasicMaterial({ color: cor, fog: false }));
     lua.position.set(x, y, z);
     const halo = new THREE.Mesh(new THREE.SphereGeometry(raio * 1.5, 16, 12),
       new THREE.MeshBasicMaterial({ color: 0xb8c8ff, transparent: true, opacity: 0.15, fog: false }));
@@ -341,6 +411,7 @@ export class ConstrutorFase {
   /** Lasers (e, nas fases infectadas, poças): machucam o herói. */
   atualizarPerigos(dt, jogador) {
     const j = jogador.posicao;
+    this._atualizarPerigosPesadelo(dt, jogador);
     for (const l of this.lasers || []) {
       const t = (this.tempo + l.fase + 100) % (l.ligado + l.desligado);
       const ligado = t < l.ligado;
@@ -352,6 +423,19 @@ export class ConstrutorFase {
       if (ligado && Math.abs(j.z - l.z) < jogador.raio + 0.05 && Math.abs(j.x - l.x) < l.larg / 2 && j.y < l.chao + 0.75 && j.y > l.chao - 1) {
         jogador.levarDano(j.x, l.z + (j.z > l.z ? -1 : 1), 5);
       }
+    }
+  }
+
+  // (continuação de atualizarPerigos) poças e pêndulos
+  _atualizarPerigosPesadelo(dt, jogador) {
+    const j = jogador.posicao;
+    for (const p of this.pocas || []) {
+      if (Math.hypot(j.x - p.x, j.z - p.z) < p.raio && Math.abs(j.y - p.chao) < 0.3) jogador.infectar(26 * dt);
+    }
+    for (const p of this.pendulos || []) {
+      const ang = Math.sin(this.tempo * p.velocidade + p.fase) * Math.asin(Math.min(0.95, p.amplitude / 6));
+      const bx = p.x + Math.sin(ang) * 6, by = p.chao + 7 - Math.cos(ang) * 6;
+      if (Math.hypot(j.x - bx, j.z - p.z) < 1.1 + jogador.raio && Math.abs(j.y + 0.8 - by) < 1.7) jogador.levarDano(bx, p.z, 8);
     }
   }
 
@@ -469,6 +553,10 @@ export class ConstrutorFase {
       });
       for (const c of corpos) if (c.apoio === e.caixa) { c.posicao.x += e.vx * dt; c.posicao.z += e.vz * dt; }
     }
+    for (const p of this.pendulos || []) p.g.rotation.z = Math.sin(this.tempo * p.velocidade + p.fase) * Math.asin(Math.min(0.95, p.amplitude / 6));
+    for (const p of this.pocas || []) p.m.scale.setScalar(1 + Math.sin(this.tempo * 2 + p.x) * 0.05);
+    for (const fogo of this.fogos || []) fogo.scale.set(1, 0.85 + Math.sin(this.tempo * 12 + fogo.position.x * 3 + fogo.position.z) * 0.25, 1);
+    if (foco) for (const o of this.olhosArvore || []) o.lookAt(foco.x, foco.y + 1, foco.z);
     for (const b of this.bichos || []) {
       b.bicho.position.y = b.y + Math.sin(this.tempo * 1.5 + b.f) * 0.3;
       b.bicho.rotation.y += dt;

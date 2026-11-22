@@ -8,6 +8,7 @@ import { som } from './audio.js';
 import { matLambert, olhos, manchas } from './inimigos/comum.js';
 import { TIPOS_AGUA } from './inimigos/agua.js';
 import { TIPOS_LABORATORIO } from './inimigos/laboratorio.js';
+import { TIPOS_PESADELO } from './inimigos/pesadelo.js';
 
 const DISTANCIA_VISAO = 10;
 const DISTANCIA_MAX_CASA = 16; // não se afasta demais de onde nasceu
@@ -62,6 +63,7 @@ function modeloCuspidor() {
 const TIPOS = {
   ...TIPOS_AGUA,
   ...TIPOS_LABORATORIO,
+  ...TIPOS_PESADELO,
   gosma: { vida: 2, raio: 0.6, altura: 0.9, pontos: 50, modelo: modeloGosma, cor: 0x7a3cff },
   saltitante: { vida: 1, raio: 0.4, altura: 0.75, pontos: 30, modelo: modeloSaltitante, cor: 0x7ddc3a },
   cuspidor: { vida: 3, raio: 0.65, altura: 1.4, pontos: 80, modelo: modeloCuspidor, cor: 0x8b2fc9 },
@@ -142,7 +144,8 @@ export class Inimigo {
     this.tempoAtordoado = 0.45;
     if (this.tipo !== 'cuspidor' && !this.cfg.fixo) { // o cogumelo tem raiz: não é empurrado
       const d = Math.hypot(dx, dz) || 1;
-      this.velocidade.set(dx / d * 9, 5, dz / d * 9);
+      const peso = this.cfg.peso ?? 1; // pesados são menos empurrados
+      this.velocidade.set(dx / d * 9 * peso, 5 * peso, dz / d * 9 * peso);
     }
     if (this.vida <= 0) {
       this.derrotar();

@@ -104,6 +104,7 @@ let jogador = null;
 carregarFase(lerFaseInicial());
 jogador = new Jogador(cena, fase.pontoInicial, lerPersonagemSalvo());
 corpos = [jogador, ...inimigos.lista];
+jogador.aoInfectar = () => mostrarMensagem('Infectado! Os controles estão AO CONTRÁRIO!', 3.5);
 jogador.alvos = () => inimigos.lista; // para a mira automática (sempre a lista da fase atual)
 cameraSeguidora.atualizar(jogador.posicao, 0, true);
 
@@ -191,6 +192,13 @@ function atualizarHud() {
   $('carga-poder').style.width = `${carga * 100}%`;
   $('hud-poder').classList.toggle('pronto', carga >= 1);
   $('nome-poder').textContent = `K: ${HABILIDADES[jogador.personagem.habilidade].nome}`;
+  // Infecção (fases contaminadas)
+  $('hud-infeccao').classList.toggle('oculto', !fase.infeccao);
+  if (fase.infeccao) {
+    $('carga-infeccao').style.width = `${jogador.infeccao}%`;
+    $('hud-infeccao').classList.toggle('controlado', jogador.tempoInfectado > 0);
+  }
+  $('veu-infeccao').style.opacity = fase.infeccao ? (jogador.tempoInfectado > 0 ? 0.95 : Math.max(0, jogador.infeccao - 25) / 110) : 0;
   // Barra de vida do chefão: aparece quando ele acorda
   const barraVisivel = chefao.acordado;
   $('chefao-barra').classList.toggle('oculto', !barraVisivel);
@@ -360,6 +368,9 @@ function aoColetar(tipo) {
   } else if (tipo === 'coracao') {
     jogador.curar();
     pulsar($('coracoes'));
+  } else if (tipo === 'antivirus') {
+    jogador.curarInfeccao();
+    mostrarMensagem('Antivírus! Infecção curada!', 2);
   }
   salvarProgresso();
 }

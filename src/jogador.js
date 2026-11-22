@@ -11,6 +11,7 @@ const VIDA_MAX = 5;
 const TEMPO_INVENCIVEL = 1.5;
 const FORCA_TRAMPOLIM = 21;
 const QUEDA_MAX = -40;
+const TEMPO_INFECTADO = 4;
 
 // Debaixo d'água (fase.agua): gravidade menor e "braçadas" no meio da água com o botão de pulo
 const FORCA_BRACADA = 6.4;
@@ -144,6 +145,39 @@ export class Jogador {
     this.bracadas = 0;        // braçadas que ainda pode dar antes de tocar o chão (fases na água)
     this.tempoBracada = 99;
     this.amassado = 0;
+    this.infeccao = 0;        // 0–100 (fases com fase.infeccao)
+    this.tempoInfectado = 0;  // > 0 = controles invertidos pelo Rei do Pesadelo
+    this.tempoSemInfeccao = 0;
+  }
+
+  /** Aumenta a infecção (só nas fases contaminadas). Ao chegar a 100, os controles se invertem por 4 s. */
+  infectar(quanto) {
+    if (!this.faseInfectada || this.tempoInfectado > 0 || this.vida <= 0 || this.protegido) return;
+    this.infeccao += quanto;
+    this.tempoSemInfeccao = 0;
+    if (this.infeccao >= 100) {
+      this.infeccao = 100;
+      this.tempoInfectado = TEMPO_INFECTADO;
+      som.efeito('infeccao');
+      this.aoInfectar?.();
+    }
+  }
+
+  /** Antivírus: limpa tudo. */
+  curarInfeccao() {
+    this.infeccao = 0;
+    this.tempoInfectado = 0;
+  }
+
+  _atualizarInfeccao(dt) {
+    if (!this.faseInfectada) { this.infeccao = 0; this.tempoInfectado = 0; return; }
+    if (this.tempoInfectado > 0) {
+      this.tempoInfectado -= dt;
+      if (this.tempoInfectado <= 0) this.infeccao = 30;
+      return;
+    }
+    this.tempoSemInfeccao += dt;
+    if (this.tempoSemInfeccao > 3) this.infeccao = Math.max(0, this.infeccao - 4 * dt);
   }
 
   /** Dash de energia: corre reto e rápido por alguns instantes, protegido. */
@@ -210,6 +244,7 @@ export class Jogador {
   levarDano(origemX, origemZ, empurrao = 8) {
     if (this.tempoInvencivel > 0 || this.vida <= 0 || this.protegido) return false;
     this.vida--;
+    this.infectar(20);
     this.tempoInvencivel = TEMPO_INVENCIVEL;
     som.efeito('dano');
     const dx = this.posicao.x - origemX, dz = this.posicao.z - origemZ;
@@ -228,7 +263,10 @@ export class Jogador {
     this.naAgua = !!agua;
 
     // ----- Direção relativa à câmera -----
+    this.faseInfectada = !!fase.infeccao;
+    this._atualizarInfeccao(dt);
     const dir = entrada.direcao();
+    if (this.tempoInfectado > 0) { dir.x *= -1; dir.y *= -1; } // infectado: anda ao contrário
     const mx = eixos.frente.x * dir.y + eixos.direita.x * dir.x;
     const mz = eixos.frente.z * dir.y + eixos.direita.z * dir.x;
     const vMax = (entrada.correndo() ? this.vMax * 1.65 : this.vMax) * (agua ? 0.9 : 1);

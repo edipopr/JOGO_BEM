@@ -37,25 +37,34 @@ const GEOMETRIAS = {
   cristal: new THREE.OctahedronGeometry(0.32, 0),
   coracao: extrudar(formaCoracao()),
   estrela: extrudar(formaEstrela()),
+  antivirus: new THREE.CapsuleGeometry(0.2, 0.36, 3, 8),
 };
 const CORES_CRISTAL = [0x5ad1ff, 0xff6b9d, 0xb07dff, 0x7dff5a, 0xffd84a];
 const MATERIAIS = {
   cristal: CORES_CRISTAL.map(matBrilhante),
   coracao: [matBrilhante(0xff3b5c)],
   estrela: [matBrilhante(0xffd84a)],
+  antivirus: [matBrilhante(0x3dff8a)],
 };
-const COR_PARTICULA = { cristal: 0x5ad1ff, coracao: 0xff3b5c, estrela: 0xffd84a };
-const ESCALA = { cristal: 1, coracao: 1, estrela: 1.3 };
+const COR_PARTICULA = { cristal: 0x5ad1ff, coracao: 0xff3b5c, estrela: 0xffd84a, antivirus: 0x3dff8a };
+const ESCALA = { cristal: 1, coracao: 1, estrela: 1.3, antivirus: 1.1 };
+
+const MAT_CRUZ = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
 // ---------- Itens ----------
 export class GerenciadorItens {
-  /** definicoes = [{ tipo: 'cristal'|'coracao'|'estrela', x, y, z }] — y = altura do chão */
+  /** definicoes = [{ tipo: 'cristal'|'coracao'|'estrela'|'antivirus', x, y, z }] — y = altura do chão */
   constructor(cena, definicoes) {
     this.lista = definicoes.map((d, i) => {
       const materiais = MATERIAIS[d.tipo];
       const malha = new THREE.Mesh(GEOMETRIAS[d.tipo], materiais[i % materiais.length]);
       malha.scale.setScalar(ESCALA[d.tipo]);
       malha.castShadow = true;
+      if (d.tipo === 'antivirus') { // cruzinha branca no frasco
+        for (const [l, a] of [[0.24, 0.08], [0.08, 0.24]]) {
+          malha.add(new THREE.Mesh(new THREE.BoxGeometry(l, a, 0.46), MAT_CRUZ));
+        }
+      }
       cena.add(malha);
       return { tipo: d.tipo, base: new THREE.Vector3(d.x, d.y + 0.9, d.z), malha, ativo: true, fase: i * 0.7 };
     });
@@ -101,6 +110,7 @@ export class GerenciadorItens {
       const dy = centro - item.malha.position.y;
       if (dx * dx + dz * dz + dy * dy > 1.1 * 1.1) continue;
       if (item.tipo === 'coracao' && jogador.vida >= jogador.vidaMax) continue; // só pega se precisar
+      if (item.tipo === 'antivirus' && jogador.infeccao < 10) continue;
 
       item.ativo = false;
       item.malha.visible = false;

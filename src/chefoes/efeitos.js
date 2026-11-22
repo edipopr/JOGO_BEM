@@ -104,6 +104,7 @@ export class Quedas {
         q.acertou = true;
         this.particulas.explosao(new THREE.Vector3(q.x, q.y + 0.5, q.z), this.corExplosao, 14, 6);
         if (this.sonora) som.efeito('explosao');
+        this.aoCair?.(q.x, q.y, q.z);
         if (Math.hypot(j.x - q.x, j.z - q.z) < this.raio + 0.1 && Math.abs(j.y - q.y) < 2.2) jogador.levarDano(q.x, q.z, 3);
         if (q.emArco) q.malha.visible = false;
       }

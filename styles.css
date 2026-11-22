@@ -342,3 +342,17 @@ html, body {
 }
 .tela-selecao h3 { position: absolute; top: 12px; left: 0; right: 0; }
 .tela.tela-selecao { background: linear-gradient(rgba(10,30,40,0) 45%, rgba(10,30,40,.88) 65%); }
+
+/* ---------- Infecção (fases contaminadas) ---------- */
+#veu-infeccao {
+  position: absolute; inset: 0; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(circle at 50% 50%, rgba(90, 20, 140, 0) 35%, rgba(90, 20, 140, .75) 75%, rgba(40, 0, 60, .95));
+}
+.hud-infeccao {
+  position: absolute; top: 56px; left: 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: bold; background: rgba(0,0,0,.35); padding: 5px 12px; border-radius: 16px;
+}
+.hud-infeccao .carga-poder i { background: linear-gradient(90deg, #9dff3d, #b04dff, #ff3bd0); width: 0; transition: width .2s; }
+.hud-infeccao.controlado { animation: piscar-infeccao .4s infinite alternate; }
+@keyframes piscar-infeccao { to { background: rgba(176, 77, 255, .9); } }
+@media (max-width: 520px) { .hud-infeccao { top: 44px; font-size: 12px; } }

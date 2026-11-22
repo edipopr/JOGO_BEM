@@ -85,6 +85,21 @@ const MUSICAS = {
     baixo: padrao(`G1 G1 . G2 G1 . G1 G2 | G1 G1 . G2 G1 . G1 G2 | D#2 D#2 . D#2 C2 C2 . C2 | D2 D2 . D2 D2 . D2 D2`),
     bateria: padrao(`k h s k k h s h | k h s k k s s h`),
   },
+  // Floresta do Pesadelo: sombria
+  pesadelo: {
+    bpm: 90, volume: 0.45,
+    melodia: padrao(`C4 . D#4 . G4 . F#4 . | F4 . D#4 . D4 . . . | C4 . D#4 . G#4 . G4 . | F#4 . F4 . B3 . . .
+                     C5 . B4 . G4 . D#4 . | F4 . F#4 . G4 . . . | G#4 . G4 . D#4 . D4 . | C4 . . . B3 . . .`),
+    baixo: padrao(`C2 . . C2 . . C2 . | F2 . . F2 . . F2 . | G#1 . . G#1 . . G#1 . | G1 . . G1 . . B1 .`),
+    bateria: padrao(`k . . h . k s . | k . h . . k s h`),
+  },
+  // Guardião da Infecção
+  chefaoInfeccao: {
+    bpm: 144, volume: 0.5,
+    melodia: padrao(`C5 . D#5 C5 F#5 . F5 D#5 | C5 . D#5 C5 G5 . F#5 F5 | G#5 . G5 F5 D#5 . D5 C5 | B4 . D5 . F5 . G#5 .`),
+    baixo: padrao(`C2 C2 . C2 C2 . C2 C2 | C2 C2 . C2 D#2 . D#2 D#2 | F2 F2 . F2 G#1 . G#1 G#1 | G1 G1 . G1 B1 . B1 B1`),
+    bateria: padrao(`k k s h k h s h | k k s h k s s s`),
+  },
   // Monstro de Cristal: rápida e "brilhante"
   chefaoCristal: {
     bpm: 160, volume: 0.5,
@@ -299,6 +314,13 @@ class Audio {
       case 'palhaco': // risada: ha-ha-ha-ha
         for (let i = 0; i < 5; i++) this._tom(520 - i * 45, t + i * 0.13, 0.11, { tipo: 'sawtooth', ate: 380 - i * 40, volume: 0.2 });
         break;
+      case 'fantasma': this._tom(700, t, 0.5, { tipo: 'sine', ate: 260, volume: 0.18, ataque: 0.08 }); break;
+      case 'infeccao':
+        this._tom(90, t, 0.9, { tipo: 'sawtooth', ate: 190, volume: 0.22, ataque: 0.05 });
+        this._tom(400, t, 0.9, { tipo: 'sine', ate: 120, volume: 0.2 });
+        this._ruido(t, 0.7, { volume: 0.15, filtro: 'bandpass', freqFiltro: 300, ate: 1200 });
+        break;
+      case 'antivirus': this._arpejo(['C5', 'G5', 'E6', 'C7'], t, 0.07, { tipo: 'sine', volume: 0.22 }); break;
       // ----- Habilidades especiais -----
       case 'hab_dash':
         this._ruido(t, 0.3, { volume: 0.3, filtro: 'bandpass', freqFiltro: 600, ate: 4000 });

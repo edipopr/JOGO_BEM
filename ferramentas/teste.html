@@ -24,7 +24,7 @@ f.addEventListener('load', () => {
   const simular = (segundos) => { for (let t = 0; t < segundos; t += 1 / 30) g().passo(1 / 30); };
   const estado = (rotulo) => {
     const j = g().jogador, p = j.posicao;
-    log(`${rotulo}: ${g().estado} pos=(${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}) vida=${j.vida} derrotados=${g().inimigos.derrotados}` + (g().chefao ? ` chefao=${g().chefao.estado}/${g().chefao.vida}` : ``));
+    log(`${rotulo}: ${g().estado} pos=(${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}) vida=${j.vida} inf=${Math.round(j.infeccao)} derrotados=${g().inimigos.derrotados}` + (g().chefao ? ` chefao=${g().chefao.estado}/${g().chefao.vida}` : ``));
   };
   setTimeout(() => {
     if (q.get('fase')) { // libera as fases para o teste
