@@ -5,7 +5,8 @@
 - **Fase atual:** Fase 8 (habilidades) concluída + **segunda fase "Floresta à Noite" com o chefão Monstro de Cristal** (adiantado da Fase 9)
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/ (versão aparece na tela inicial)
 - **Aguardando retorno do usuário:**
-  - Dificuldade do chefão (9 de vida, 3 golpes por cansaço; ajustar VIDA/DANO_POR_CANSACO/TEMPO_VULNERAVEL em `src/chefao.js`)
+  - Dificuldade dos chefões: Guardião (9 de vida, 3 golpes por cansaço) e Monstro de Cristal (12 de vida, 4 por cansaço); ajustar `vida`/`danoPorCansaco`/`tempoVulneravel` em `src/chefoes/guardiao.js` e `src/chefoes/cristal.js`
+  - Visual da Floresta à Noite no celular; se quer um inimigo noturno novo (ex.: morcego)
   - Se a mira automática e as áreas maiores deixaram os heróis fáceis de acertar (ajustar `ATAQUES` em `src/jogador.js`)
   - Se o botão "Jogar de novo" aparece no celular deitado
   - **Contagem online LIGADA** (banco guizinho-3685f, Firebase). Painel: https://edipopr.github.io/JOGO_BEM/painel.html. Há 1 aparelho de teste "teste-claude" que o usuário pode apagar no console
