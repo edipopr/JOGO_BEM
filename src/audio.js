@@ -100,6 +100,22 @@ const MUSICAS = {
     baixo: padrao(`C2 C2 . C2 C2 . C2 C2 | C2 C2 . C2 D#2 . D#2 D#2 | F2 F2 . F2 G#1 . G#1 G#1 | G1 G1 . G1 B1 . B1 B1`),
     bateria: padrao(`k k s h k h s h | k k s h k s s s`),
   },
+  // Castelo: marcha solene
+  castelo: {
+    bpm: 100, volume: 0.45,
+    melodia: padrao(`E4 . E4 G4 B4 . A4 G4 | F#4 . F#4 A4 C5 . B4 A4 | G4 . B4 E5 D#5 . B4 . | C5 . B4 A4 G4 . F#4 .
+                     E5 . D5 C5 B4 . G4 . | A4 . C5 E5 D5 . C5 . | B4 . D#5 F#5 A5 . F#5 . | E5 . B4 . E4 . . .`),
+    baixo: padrao(`E2 . B2 . E2 . B2 . | D2 . A2 . D2 . A2 . | C2 . G2 . C2 . G2 . | B1 . F#2 . B1 . F#2 .`),
+    bateria: padrao(`k . h s k . h . | k . h s k s s .`),
+  },
+  // Rei do Pesadelo: rápida, grave e misteriosa
+  chefaoRei: {
+    bpm: 164, volume: 0.52,
+    melodia: padrao(`E5 . F5 E5 A#4 . B4 . | E5 . F5 E5 G5 . F5 E5 | D#5 . E5 D#5 A4 . A#4 . | B4 C5 D#5 E5 F#5 G5 A5 A#5
+                     B5 . A#5 A5 G5 . F#5 F5 | E5 . G5 . A#5 . A5 G5 | F5 . E5 D#5 E5 . B4 . | A#4 . B4 . E5 . . .`),
+    baixo: padrao(`E2 E2 E3 E2 E2 E2 E3 E2 | E2 E2 E3 E2 F2 F2 F3 F2 | C2 C2 C3 C2 C2 C2 C3 C2 | B1 B1 B2 B1 B1 B1 B2 B1`),
+    bateria: padrao(`k h s h k k s h | k k s h k s s s`),
+  },
   // Monstro de Cristal: rápida e "brilhante"
   chefaoCristal: {
     bpm: 160, volume: 0.5,

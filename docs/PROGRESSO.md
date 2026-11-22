@@ -1,19 +1,19 @@
 # Progresso do desenvolvimento
 
 ## Onde paramos
-- **Última atualização:** 2026-11-21
-- **Fase atual:** Fase 8 (habilidades) concluída + **segunda fase "Floresta à Noite" com o chefão Monstro de Cristal** (adiantado da Fase 9)
+- **Última atualização:** 2026-11-22
+- **Fase atual:** Fases 8 e 9 concluídas (menos Planeta Guizinho). O jogo tem **6 fases, 6 chefões e 5 heróis** e um final.
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/ (versão aparece na tela inicial)
+- **Já aprovado pelo usuário (2026-11-22):** Guardião e Monstro de Cristal, Floresta à Noite, mira automática, botão "Jogar de novo", volume e sons.
 - **Aguardando retorno do usuário:**
-  - Dificuldade dos chefões: Guardião (9 de vida, 3 golpes por cansaço) e Monstro de Cristal (12 de vida, 4 por cansaço); ajustar `vida`/`danoPorCansaco`/`tempoVulneravel` em `src/chefoes/guardiao.js` e `src/chefoes/cristal.js`
-  - Visual da Floresta à Noite no celular; se quer um inimigo noturno novo (ex.: morcego)
-  - Se a mira automática e as áreas maiores deixaram os heróis fáceis de acertar (ajustar `ATAQUES` em `src/jogador.js`)
-  - Se o botão "Jogar de novo" aparece no celular deitado
-  - **Contagem online LIGADA** (banco guizinho-3685f, Firebase). Painel: https://edipopr.github.io/JOGO_BEM/painel.html. Há 1 aparelho de teste "teste-claude" que o usuário pode apagar no console
-  - Volume/qualidade dos sons e da música (Claude não consegue ouvir)
-- **Próximo passo:** ouvir o retorno do usuário sobre a Floresta à Noite e o Monstro de Cristal (dificuldade, visual). Depois: Fase 9 continua (próximas fases do GDD: Planeta Guizinho, Laboratório Perdido...) ou modelos/animações mais caprichados (Fase 8).
+  - Irmão do Guizinho (força, velocidade, giro) — `src/personagens.js`, `ATAQUES.bracada` em `src/jogador.js`
+  - Mar do Pesadelo: nado (3 braçadas; `agua` em `src/fases/mar.js`), dificuldade dos monstros de água e do Ioro (15 de vida, 5 por cansaço)
+  - Laboratório, Floresta do Pesadelo, Castelo: dificuldade dos chefões (Caixa 2 = 15, Guardião da Infecção = 15, Rei = 20; 5 por cansaço)
+  - Infecção: 20 por golpe, ~26–32/s nas poças, controles invertidos 4 s (`TEMPO_INFECTADO` em `src/jogador.js`)
+  - Desempenho no celular nas fases novas; músicas e sons novos (Claude não consegue ouvir)
+  - **Decidir:** Planeta Guizinho (do GDD) ainda não existe; o chefão dele (Monstro de Cristal) já foi usado na fase 2. Vira fase extra? Com qual chefão?
+- **Próximo passo:** ajustes pedidos pelo usuário; depois Planeta Guizinho, diálogos/história, ou Fase 10 (multiplayer local).
 - **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
-
 ## Fases
 
 ### Fase 1 — Base jogável ✅
@@ -92,7 +92,9 @@
 - [x] (adiantado) Ataque próprio de cada um: soco (Guizinho), explosão de luz em área (TV), raio de longo alcance (Caixa), projétil explosivo (BOT)
 - [x] (adiantado) Tela de seleção com cartões, barras de atributos e o herói em 3D; escolha salva no aparelho; "Trocar herói" na vitória/derrota
 - [x] Habilidades especiais (tecla K / botão "Poder", `src/habilidades.js`): dash de energia (2,5 s; protegido, atropela inimigos), onda de cores (6 s; acerta em volta, deixa tontos, apaga tiros), campo tecnológico (escudo 4 s; recarga 9 s), tiro de canhão (4 s; dano 3, explosão grande, mira de 18 m). Barra de carga no PC e botão com carga no celular
-- [ ] Modelos e animações mais caprichados
+- [x] Modelos e animações mais caprichados (`src/modelos.js`): pernas que andam, braços com pivô no ombro, olhos que piscam, respiração, inclinação ao correr, "amassa" ao cair, pose de nado
+- [x] **Novo herói (pedido do usuário): Irmão do Guizinho** — roxo e branco, braços gigantes; ataque "Pancada gigante" (bracada), poder "Giro gigante" (protegido, acerta em volta)
+- [x] Tela de seleção com 5 cartões (herói visível acima deles) e 6 fases
 
 ### Fase 9 — Demais fases e vilões
 - [x] (adiantado, pedido do usuário) **Fase 2: Floresta à Noite** (`src/fases/noite.js`): clareira enluarada, pedras flutuantes, Bosque dos Vagalumes, cogumelo-elevador, Planalto dos Cristais (trampolim secreto), Lago Escuro, Bosque Sombrio, Arena de Cristal; lanterna no herói, lua, vagalumes, cogumelos brilhantes; 27 cristais, 3 estrelas, 4 corações, 4 checkpoints; música "noite"
@@ -100,9 +102,14 @@
 - [x] Chefões com base comum (`src/chefoes/base.js`); Guardião em `src/chefoes/guardiao.js`
 - [x] Várias fases: `src/fases/index.js` (FASES); escolha da fase na seleção (a 2 libera ao vencer a 1); "Próxima fase ▶" na vitória; jogo salvo e recordes por fase; contagem online registra a fase
 - [x] Correção: o modelo do chefão aparecia no início da fase (posição 0,0,0) antes da luta
-- [ ] Planeta Guizinho, Laboratório Perdido, Circo do Ioro, Floresta do Pesadelo, Castelo
-- [ ] Experimento Caixa 2, Ioro, Rei do Pesadelo
-- [ ] Sistema de infecção
+- [x] **Fase 3: Mar do Pesadelo** (`mar.js`, pedido do usuário): debaixo d'água escura, castelo ao fundo crescendo; nado (gravidade menor + 3 braçadas), coluna de bolhas; peixe-lanterna, água-viva elétrica, caranguejo, baiacu; navio naufragado, ruínas
+- [x] **Chefão Ioro** (`ioro.js`): pancada de 4 mãos, bolas explosivas, giro dos 4 braços, corrida que ricocheteia; no picadeiro afundado (substitui o "Circo do Ioro" do GDD)
+- [x] **Fase 4: Laboratório Perdido** (`laboratorio.js`): lasers, esteiras, ventilador, ácido; drone, caixinha disfarçada, robô-tanque. **Chefão Experimento Caixa 2** (`caixa2.js`): mordida, raio giratório, invoca caixinhas, chuva de caixas
+- [x] **Fase 5: Floresta do Pesadelo** (`pesadelo.js`): poças de infecção, sombra, olho voador, espinhoso, tentáculo. **Chefão Guardião da Infecção** (`infeccao.js`): salto esmagador, tentáculos, poças, enxame
+- [x] **Fase 6: Castelo do Pesadelo** (`castelo.js`): cavaleiros, pêndulos, torres flutuantes. **Chefão final Rei do Pesadelo** (`rei.js`): mergulho pelo chão, tentáculos em estrela, olhar (raios), chuva de gosma, exército; núcleo exposto; tela final "Você salvou o universo!"
+- [x] Sistema de infecção (barra ☣ no HUD, véu roxo, controles invertidos 4 s ao chegar a 100%, antivírus)
+- [ ] Planeta Guizinho (decidir o chefão)
+- [ ] História/diálogos entre as fases
 
 ### Fase 10 — Multiplayer local
 ### Fase 11 — Multiplayer online
@@ -119,3 +126,4 @@
 - **2026-11-21:** Ajustes (5 vidas, mira automática, tela de vitória deitada, painel de partidas) e Fase 5 (chefão Guardião da Floresta).
 - **2026-11-21:** Contagem online (Firebase) + painel online; Fase 6 (menu, pausa, salvamento, configurações).
 - **2026-11-21:** Fase 8 (habilidades especiais) e segunda fase (Floresta à Noite + Monstro de Cristal); suporte a várias fases.
+- **2026-11-22:** Irmão do Guizinho, modelos/animações novos, fases 3 a 6 (Mar, Laboratório, Floresta do Pesadelo, Castelo) com Ioro, Experimento Caixa 2, Guardião da Infecção e Rei do Pesadelo; infecção; final do jogo. Correção: árvore tapava o herói no início da Floresta à Noite; inimigos apareciam amontoados no (0,0,0) na tela de seleção.

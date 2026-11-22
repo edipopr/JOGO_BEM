@@ -46,13 +46,16 @@ styles.css            estilos da interface
 src/main.js           inicialização, estados (inicio/selecao/jogando/pausado/caindo/vitoria/derrota), menu, pausa, salvar/continuar, loop, HUD
 src/entrada.js        teclado, mouse e toque (joystick virtual, botões Atacar/Pular)
 src/camera.js         câmera em terceira pessoa (distancia, inclinacao, alturaAlvo)
-src/personagens.js    PERSONAGENS: 4 heróis (atributos 1–5 do GDD, tipo de ataque, modelo low-poly)
-src/jogador.js        jogador com o herói escolhido: movimento, pulo, ataques (soco/onda/raio/projetil), vida
-src/habilidades.js    habilidades especiais (K / botão Poder): dash, ondaCores, campo, canhao — campo "habilidade" em PERSONAGENS
+src/personagens.js    PERSONAGENS: 5 heróis (atributos 1–5 do GDD, tipo de ataque, habilidade)
+src/modelos.js        modelos low-poly dos heróis (pivôs: bracoE/D, pernaE/D, cabeca; piscam = olhos)
+src/jogador.js        jogador com o herói escolhido: movimento, pulo, nado (fase.agua), ataques (soco/onda/raio/projetil/bracada), vida, infecção, animação
+src/habilidades.js    habilidades especiais (K / botão Poder): dash, ondaCores, campo, canhao, giro — campo "habilidade" em PERSONAGENS
 src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
-src/inimigo.js        inimigos (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos)
+src/inimigo.js        inimigos da floresta (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos); {invocado:true} = criatura chamada por chefão (chefao.reserva)
+src/inimigos/         comum.js (peças e movimentos), agua.js, laboratorio.js, pesadelo.js — cada tipo tem modelo(), agir(ini,dt,ctx), animar(ini,dt)
+src/chefoes/efeitos.js  ataques prontos: Ondas, Quedas (aoCair), Brotos, Feixe, criarTontura
 src/chefoes/base.js   base dos chefões (dormir, acordar, ciclo de ataques, cansado/vulnerável, purificar, barreira); entra no GerenciadorInimigos
-src/chefoes/guardiao.js  Guardião da Floresta (fase 1)   src/chefoes/cristal.js  Monstro de Cristal (fase 2)
+src/chefoes/guardiao.js  Guardião da Floresta (fase 1)   src/chefoes/cristal.js  Monstro de Cristal (fase 2); ioro.js (3), caixa2.js (4), infeccao.js (5), rei.js (6, final)
 src/salvamento.js     jogo salvo (Continuar) e recordes por fase (localStorage)
 src/configuracoes.js  configurações (volumes, câmera, gráficos) salvas no aparelho; configuracoes.aoMudar(f)
 src/estatisticas.js   painel do jogo: partidas/vitórias/derrotas/recordes salvos no aparelho (localStorage)
@@ -65,6 +68,7 @@ src/fases/construtor.js  ConstrutorFase: ilhas, blocos, plataformas móveis, tra
 src/fases/index.js       FASES (ordem do jogo); cada fase devolve { id, nome, caixas, inimigos, itens, checkpoints, avisos, portal, arena, barreira, criarChefao, musicaChefao, musicaEm }
 src/fases/floresta.js    Fase 1: Floresta dos Amigos
 src/fases/noite.js       Fase 2: Floresta à Noite (luzes de noite, lanterna, vagalumes)
+src/fases/mar.js         Fase 3: Mar do Pesadelo (debaixo d'água)   laboratorio.js  Fase 4   pesadelo.js  Fase 5 (infecção)   castelo.js  Fase 6 (final)
 src/pwa.js            service worker, atualização automática e botão "Instalar app"
 src/audio.js          som: efeitos e trilha sintetizados (Web Audio); som.efeito(nome), som.musica(nome|null), mudo salvo
 src/versao.js         versão exibida na tela inicial (trocada por ferramentas/nova_versao.sh)
@@ -80,5 +84,9 @@ docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 - Equilíbrio: a TV Rambon (pulo 2 → ~1,7 m de altura, vel. 4,5) é o herói mais limitado; todo salto obrigatório deve ser possível com ela (degraus ≤ 1,2 m, vãos ≤ 2,5 m).
 - Novos personagens: adicionar em `PERSONAGENS` (personagens.js). Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase + registrar em `src/fases/index.js` (e em sw.js). Novos chefões: subclasse de `ChefaoBase` com métodos `_ataque_<nome>`.
 - Cada fase tem seu "mundo" (cena própria) montado uma vez em main.js (`carregarFase(id)`); o jogador muda de cena com `jogador.mudarCena`.
+- Campos opcionais da fase: `agua` {gravidade, quedaMax, bracadas}, `correntes` (colunas que sobem), `infeccao: true`, `perigos(dt, jogador)` (lasers, poças, pêndulos), `limiteQueda`, `longe` (distância de visão; fases com névoa usam ~100 para ficar leve), `musicaChefao`.
+- Construtor: `arenaChefao()` monta arena + muretas + barreira; `corrente`, `esteira`, `laser`, `poca`, `pendulo`, `casteloAoLonge`... Desempenho: manter ≲ 500 desenhos por quadro (teste.html mostra "desenhos").
+- Teste.html extra: `giro`, `inclina`, `distancia` (câmera); ações `vida:99`, `pacifico` (some com inimigos), `luta:150` (bot que ataca o chefão cansado e mostra os estados), `vencer`, `menu`. Na URL, `+W` se escreve `%2BW`.
+- Scripts .ps1 nesta máquina: rodar com `powershell -NoProfile -ExecutionPolicy Bypass -File ...` (sem isso dá erro de política de execução).
 - Teste de fase: `ferramentas/teste.html?...&fase=noite` libera e escolhe a fase.
 - Combate: `jogador.alvos()` lista os alvos da mira automática; um alvo com `bloquear()` (chefão) pode recusar dano. O portal fica fechado (`portal.abrir(false)`) até o chefão ser derrotado.

@@ -45,6 +45,8 @@ f.addEventListener('load', () => {
     for (const acao of q.get('roteiro').split(',')) {
       const [nome, seg] = acao.split(':');
       if (nome === 'vida') g().jogador.vida = g().jogador.vidaMax = Number(seg); // vida:99
+      else if (nome === 'vencer') { g().chefao.receberDano ? (g().chefao.vida = 1, g().chefao.receberDano()) : 0; simular(4); g().jogador.posicao.copy(g().portal.posicao); simular(0.2); } // derrota o chefão e entra no portal
+      else if (nome === 'menu') d.getElementById('btn-menu-vitoria').click();
       else if (nome === 'pacifico') g().inimigos.lista.forEach((i) => { if (!i.bloquear) { i.derrotar(); i.tempoRenascer = 1e9; } }); // some com os inimigos
       else if (nome === 'luta') { // luta:60 = ataca o chefão quando ele cansa (até 60 s) e registra os estados por que passou
         const vistos = {}; let ant = '';

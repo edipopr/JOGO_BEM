@@ -4,6 +4,7 @@ import { criarFlorestaNoite } from './noite.js';
 import { criarMarPesadelo } from './mar.js';
 import { criarLaboratorio } from './laboratorio.js';
 import { criarFlorestaPesadelo } from './pesadelo.js';
+import { criarCastelo } from './castelo.js';
 
 export const FASES = [
   { id: 'floresta', nome: 'Floresta dos Amigos', criar: criarFlorestaDosAmigos },
@@ -11,6 +12,7 @@ export const FASES = [
   { id: 'mar', nome: 'Mar do Pesadelo', criar: criarMarPesadelo },
   { id: 'laboratorio', nome: 'Laboratório Perdido', criar: criarLaboratorio },
   { id: 'pesadelo', nome: 'Floresta do Pesadelo', criar: criarFlorestaPesadelo },
+  { id: 'castelo', nome: 'Castelo do Pesadelo', criar: criarCastelo },
 ];
 
 export const indiceFase = (id) => Math.max(0, FASES.findIndex((f) => f.id === id));

@@ -98,6 +98,7 @@ export class Inimigo {
     this.ativo = true;
     this.vida = this.cfg.vida;
     this.posicao.copy(this.casa);
+    this.modelo.position.copy(this.casa);
     this.velocidade.set(0, 0, 0);
     this.noChao = false;
     this.tempoAtordoado = 0;

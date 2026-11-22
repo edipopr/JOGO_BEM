@@ -430,6 +430,14 @@ function vencer() {
     ${novoRecorde ? '<span>🏆 Novo recorde!</span><b>' + pontosTotais() + '</b>' : `<span>Recorde</span><b>${antes.melhorPontos}</b>`}`;
   registrarFim('vitoria');
   const proxima = FASES[indiceFase(fase.id) + 1];
+  // Última fase: final da história
+  $('titulo-vitoria').textContent = proxima ? 'Vitória!' : 'Você salvou o universo!';
+  $('titulo-vitoria').classList.toggle('final', !proxima);
+  $('texto-final').classList.toggle('oculto', !!proxima);
+  if (!proxima) {
+    $('texto-final').textContent = 'Sem o núcleo, o pesadelo se desfez e o Rei virou uma gosminha bem fofa. '
+      + 'Guizinho, o Irmão, TV Rambon, Experimento Caixa e Mr. Fun BOT voltaram para casa como heróis. Obrigado por jogar!';
+  }
   $('btn-proxima').classList.toggle('oculto', !proxima);
   $('btn-de-novo').classList.toggle('secundario', !!proxima);
   mostrarTela('vitoria');

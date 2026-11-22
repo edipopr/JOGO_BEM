@@ -356,3 +356,11 @@ html, body {
 .hud-infeccao.controlado { animation: piscar-infeccao .4s infinite alternate; }
 @keyframes piscar-infeccao { to { background: rgba(176, 77, 255, .9); } }
 @media (max-width: 520px) { .hud-infeccao { top: 44px; font-size: 12px; } }
+/* ---------- Final do jogo ---------- */
+.texto-final { max-width: 640px; font-size: clamp(14px, 2.4vw, 20px); line-height: 1.35; background: rgba(0,0,0,.35); padding: 10px 18px; border-radius: 16px; }
+.tela h1.final { font-size: clamp(32px, 7vw, 64px); }
+@media (max-height: 500px) { .tela h1.final { font-size: 30px; } .texto-final { font-size: 13px; padding: 6px 14px; max-width: 720px; } }@media (min-width: 700px) {
+  .vitoria-conteudo { flex-direction: row; align-items: center; gap: 24px; }
+  .recorde-fase { columns: 2; column-gap: 28px; text-align: left; }
+}
+@media (max-height: 500px) { .recorde-fase { font-size: 12px; padding: 4px 12px; } }
