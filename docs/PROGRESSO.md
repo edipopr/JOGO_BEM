@@ -15,7 +15,9 @@
   - Infecção: 20 por golpe, ~26–32/s nas poças, controles invertidos 4 s (`TEMPO_INFECTADO` em `src/jogador.js`)
   - Desempenho no celular nas fases novas; músicas e sons novos (Claude não consegue ouvir)
   - **Decidir:** Planeta Guizinho (do GDD) ainda não existe; o chefão dele (Monstro de Cristal) já foi usado na fase 2. Vira fase extra? Com qual chefão?
-- **Próximo passo:** ajustes pedidos pelo usuário; depois Planeta Guizinho, diálogos/história, ou Fase 10 (multiplayer local).
+- **Perguntas em aberto (feitas em 2026-11-22):** o nome "Nina" fica? Os sons do punho e do superímã estão bons? Refazer os cartões de divulgação com a Nina?
+- **Ainda não testado:** Nina contra os chefões das fases 2 a 6 (só o Guardião foi vencido com ela no teste automático)
+- **Próximo passo:** respostas acima e ajustes pedidos pelo usuário; depois Planeta Guizinho, diálogos/história, ou Fase 10 (multiplayer local).
 - **Antes de cada commit que muda o jogo:** `sh ferramentas/nova_versao.sh`
 ## Fases
 
