@@ -70,6 +70,21 @@ const MUSICAS = {
                    D2 . A2 . D2 . A2 . | G1 . D2 . G1 . D2 . | A1 . E2 . A1 . E2 . | D2 . A2 . D2 . D2 .`),
     bateria: padrao(`k . s . k . s . | k . s h k s s h`),
   },
+  // Laboratório Perdido: mecânica, com bipes
+  laboratorio: {
+    bpm: 112, volume: 0.42,
+    melodia: padrao(`G4 . A#4 . G4 . C5 . | G4 . A#4 . D5 . C5 . | D#4 . G4 . D#4 . A#4 . | F4 . A4 . C5 . D5 .
+                     G5 . . D5 . . A#4 . | C5 . . G4 . . A4 . | A#4 . G4 . D#4 . F4 . | G4 . . . D4 . . .`),
+    baixo: padrao(`G2 . G2 G2 . G2 . G2 | G2 . G2 G2 . G2 . G2 | D#2 . D#2 D#2 . D#2 . D#2 | F2 . F2 F2 . F2 . F2`),
+    bateria: padrao(`k h . h s . h h | k h k h s . h .`),
+  },
+  // Experimento Caixa 2: pesada e mastigada
+  chefaoCaixa: {
+    bpm: 148, volume: 0.5,
+    melodia: padrao(`G4 G4 A#4 G4 C#5 . C5 A#4 | G4 G4 A#4 G4 D5 . C#5 C5 | D#5 . D5 C5 A#4 . A4 G4 | F#4 . A4 . C5 . D#5 .`),
+    baixo: padrao(`G1 G1 . G2 G1 . G1 G2 | G1 G1 . G2 G1 . G1 G2 | D#2 D#2 . D#2 C2 C2 . C2 | D2 D2 . D2 D2 . D2 D2`),
+    bateria: padrao(`k h s k k h s h | k h s k k s s h`),
+  },
   // Monstro de Cristal: rápida e "brilhante"
   chefaoCristal: {
     bpm: 160, volume: 0.5,

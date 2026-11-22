@@ -122,7 +122,7 @@ export class Jogador {
   }
 
   curar() {
-    this.vida = Math.min(VIDA_MAX, this.vida + 1);
+    this.vida = Math.min(this.vidaMax, this.vida + 1);
   }
 
   /** Volta ao ponto de renascimento (mantém a vida). */

@@ -76,6 +76,7 @@ function construirMundo(id) {
   };
   m.chefao = f.criarChefao(novaCena, m.particulas, f);
   m.inimigos.adicionar(m.chefao); // entra no combate como um inimigo (golpes, projéteis, mira)
+  for (const ini of m.chefao.reserva || []) m.inimigos.adicionar(ini); // criaturas que o chefão invoca
   m.portal.abrir(false);           // o portal só abre quando o chefão for derrotado
   m.chefao.avisar = aoEventoChefao;
   return m;
@@ -645,6 +646,7 @@ function passo(dt, desenhar = true) {
       if (jogador.quicou) particulas.explosao(jogador.posicao, 0xff6b9d, 10, 4);
       itens.atualizar(dt, jogador, particulas, aoColetar);
       checkpoints.atualizar(dt, jogador, particulas, aoAtivarCheckpoint);
+      fase.perigos?.(dt, jogador); // lasers, poças...
       verificarAvisos();
       if (tempoAbrirPortal > 0) {
         tempoAbrirPortal -= dt;

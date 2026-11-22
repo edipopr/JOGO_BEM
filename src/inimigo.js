@@ -7,6 +7,7 @@ import { GRAVIDADE, moverComColisao } from './fisica.js';
 import { som } from './audio.js';
 import { matLambert, olhos, manchas } from './inimigos/comum.js';
 import { TIPOS_AGUA } from './inimigos/agua.js';
+import { TIPOS_LABORATORIO } from './inimigos/laboratorio.js';
 
 const DISTANCIA_VISAO = 10;
 const DISTANCIA_MAX_CASA = 16; // não se afasta demais de onde nasceu
@@ -60,13 +61,16 @@ function modeloCuspidor() {
  */
 const TIPOS = {
   ...TIPOS_AGUA,
+  ...TIPOS_LABORATORIO,
   gosma: { vida: 2, raio: 0.6, altura: 0.9, pontos: 50, modelo: modeloGosma, cor: 0x7a3cff },
   saltitante: { vida: 1, raio: 0.4, altura: 0.75, pontos: 30, modelo: modeloSaltitante, cor: 0x7ddc3a },
   cuspidor: { vida: 3, raio: 0.65, altura: 1.4, pontos: 80, modelo: modeloCuspidor, cor: 0x8b2fc9 },
 };
 
 export class Inimigo {
-  constructor(cena, tipo, pontoInicial) {
+  /** invocado = criatura chamada por um chefão: começa guardada e não renasce sozinha. */
+  constructor(cena, tipo, pontoInicial, { invocado = false } = {}) {
+    this.invocado = invocado;
     this.tipo = TIPOS[tipo] ? tipo : 'gosma';
     this.cfg = TIPOS[this.tipo];
     const m = this.cfg.modelo();
@@ -99,8 +103,26 @@ export class Inimigo {
     this.tempoAcao = 1 + Math.random();
     this.direcaoVagar = { x: 0, z: 0 };
     this.angulo = 0;
-    this.bote = 0; this.investida = 0; this.tempoChoque = 0; // usados pelos tipos de src/inimigos/
+    this.bote = 0; this.investida = 0; this.tempoChoque = 0; this.revelada = false; this.tiros = 0; // usados pelos tipos de src/inimigos/
     this.modelo.visible = true;
+    if (this.invocado) this.dispensar();
+  }
+
+  /** Guarda a criatura invocada (some sem ser derrotada). */
+  dispensar() {
+    this.ativo = false;
+    this.modelo.visible = false;
+    this.tempoRenascer = Infinity;
+  }
+
+  /** Chefão chama a criatura para (x, y, z). Retorna false se ela já está em jogo. */
+  invocar(x, y, z) {
+    if (this.ativo) return false;
+    this.casa.set(x, y, z);
+    this.invocado = false;
+    this.renascer();
+    this.invocado = true;
+    return true;
   }
 
   centro() {
@@ -110,7 +132,7 @@ export class Inimigo {
   derrotar() {
     this.ativo = false;
     this.modelo.visible = false;
-    this.tempoRenascer = TEMPO_RENASCER;
+    this.tempoRenascer = this.invocado ? Infinity : TEMPO_RENASCER;
   }
 
   /** Recebe um golpe vindo da direção (dx, dz). Retorna true se foi derrotado. */

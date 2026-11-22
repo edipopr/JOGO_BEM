@@ -271,6 +271,124 @@ export class ConstrutorFase {
     m.scale.y = 0.7;
   }
 
+  // ---------- Laboratório ----------
+  /** Esteira rolante: empurra quem pisa (vx, vz em m/s). */
+  esteira(x, z, topo, larg, prof, { vx = 0, vz = 0 } = {}) {
+    const { caixa } = this.bloco(x, z, topo, larg, prof, 0.5, 0x2b333a);
+    const faixas = [];
+    const aoLongoZ = vz !== 0;
+    const n = Math.round((aoLongoZ ? prof : larg) / 1.5);
+    for (let i = 0; i < n; i++) {
+      const geo = aoLongoZ ? new THREE.BoxGeometry(larg * 0.9, 0.04, 0.35) : new THREE.BoxGeometry(0.35, 0.04, prof * 0.9);
+      const m = new THREE.Mesh(geo, this.material(0xffd84a));
+      m.position.set(x, topo + 0.02, z);
+      this.cena.add(m);
+      faixas.push(m);
+    }
+    (this.esteiras ||= []).push({ caixa, vx, vz, faixas, x, z, comp: aoLongoZ ? prof : larg, aoLongoZ });
+  }
+
+  /** Laser atravessado no caminho (liga e desliga). Dá para pular por cima. */
+  laser(x, z, chao, larg, { ligado = 1.5, desligado = 1.5, fase = 0 } = {}) {
+    const mats = [0.35, 0.75].map((y) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(larg, 0.09, 0.09), new THREE.MeshBasicMaterial({ color: 0xff2a4a, transparent: true, opacity: 0.9 }));
+      m.position.set(x, chao + y, z);
+      this.cena.add(m);
+      return m;
+    });
+    (this.lasers ||= []).push({ mats, x, z, chao, larg, ligado, desligado, fase });
+  }
+
+  /** Tubo de vidro com uma criatura dentro. */
+  tubo(x, z, chao, cor = 0x7dff3a) {
+    this.bloco(x, z, chao + 0.5, 1.8, 1.8, 0.5, 0x2b333a);
+    this.malha(new THREE.CylinderGeometry(0.85, 0.85, 0.4, 10), 0x2b333a, x, chao + 3.4, z);
+    const vidro = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 2.7, 10, 1, true),
+      new THREE.MeshLambertMaterial({ color: cor, emissive: cor, emissiveIntensity: 0.35, transparent: true, opacity: 0.35, depthWrite: false }));
+    vidro.position.set(x, chao + 1.85, z);
+    const bicho = new THREE.Mesh(new THREE.IcosahedronGeometry(0.4, 0), new THREE.MeshLambertMaterial({ color: 0x5a2a8a, flatShading: true }));
+    bicho.position.set(x, chao + 1.7, z);
+    this.cena.add(vidro, bicho);
+    this.caixas.push(new THREE.Box3(new THREE.Vector3(x - 0.75, chao, z - 0.75), new THREE.Vector3(x + 0.75, chao + 3.6, z + 0.75)));
+    (this.bichos ||= []).push({ bicho, y: chao + 1.7, f: x + z });
+  }
+
+  /** Caixa de papelão (sólida). */
+  caixote(x, z, chao) {
+    this.bloco(x, z, chao + 1.1, 1.1, 1.1, 1.1, 0xb98a4a);
+    this.malha(new THREE.BoxGeometry(1.12, 0.08, 0.24), 0x8a6230, x, chao + 1.08, z, false);
+  }
+
+  computador(x, z, chao, giro = 0) {
+    this.bloco(x, z, chao + 1, 2.2, 0.8, 1, 0x3a4852);
+    const g = new THREE.Group();
+    const tela = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 0.1), this.material(0x1a2228));
+    tela.position.y = 1.6;
+    const brilho = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.7), new THREE.MeshBasicMaterial({ color: 0x3affb0 }));
+    brilho.position.set(0, 1.6, 0.06);
+    g.add(tela, brilho);
+    g.position.set(x, chao, z);
+    g.rotation.y = giro;
+    this.cena.add(g);
+  }
+
+  /** Faixa listrada amarela e preta no chão (beirada). */
+  faixaPerigo(x, z, chao, larg) {
+    const n = Math.round(larg / 0.9);
+    for (let i = 0; i < n; i++) this.malha(new THREE.BoxGeometry(0.9, 0.03, 0.5), i % 2 ? 0x222222 : 0xffd84a, x - larg / 2 + 0.45 + i * 0.9, chao + 0.015, z, false);
+  }
+
+  /** Lasers (e, nas fases infectadas, poças): machucam o herói. */
+  atualizarPerigos(dt, jogador) {
+    const j = jogador.posicao;
+    for (const l of this.lasers || []) {
+      const t = (this.tempo + l.fase + 100) % (l.ligado + l.desligado);
+      const ligado = t < l.ligado;
+      const aviso = !ligado && t > l.ligado + l.desligado - 0.4; // pisca antes de ligar
+      for (const m of l.mats) {
+        m.visible = ligado || (aviso && Math.floor(this.tempo * 20) % 2 === 0);
+        m.material.opacity = ligado ? 0.95 : 0.35;
+      }
+      if (ligado && Math.abs(j.z - l.z) < jogador.raio + 0.05 && Math.abs(j.x - l.x) < l.larg / 2 && j.y < l.chao + 0.75 && j.y > l.chao - 1) {
+        jogador.levarDano(j.x, l.z + (j.z > l.z ? -1 : 1), 5);
+      }
+    }
+  }
+
+  // ---------- Arena de chefão ----------
+  /**
+   * Arena quadrada com muretas, paredes invisíveis e uma barreira na entrada (x -3 a 3, lado +Z).
+   * criarParte(i) = malha de cada pedaço da barreira.
+   */
+  arenaChefao(x, z, topo, lado, { piso, terra, corMureta, criarParte, altura = 14 }) {
+    const m = lado / 2;
+    this.ilha(x, z, topo, lado, lado, { alt: altura, grama: piso, terra });
+    this.bloco(x, z - m + 0.3, topo + 1.2, lado, 0.6, 1.2, corMureta);
+    this.bloco(x - m + 0.3, z, topo + 1.2, 0.6, lado, 1.2, corMureta);
+    this.bloco(x + m - 0.3, z, topo + 1.2, 0.6, lado, 1.2, corMureta);
+    const largMureta = m - 3;
+    for (const s of [-1, 1]) this.bloco(x + s * (3 + largMureta / 2), z + m - 0.3, topo + 1.2, largMureta, 0.6, 1.2, corMureta);
+    const alto = topo + 20;
+    this.parede(x, z - m - 0.2, topo, alto, lado, 0.6);
+    this.parede(x - m - 0.2, z, topo, alto, 0.6, lado);
+    this.parede(x + m + 0.2, z, topo, alto, 0.6, lado);
+    for (const s of [-1, 1]) this.parede(x + s * (3 + largMureta / 2), z + m + 0.2, topo, alto, largMureta, 0.6);
+    const g = new THREE.Group();
+    for (let i = 0; i < 7; i++) {
+      const p = criarParte(i);
+      p.position.x = -2.85 + i * 0.95;
+      p.position.y += 1.3;
+      g.add(p);
+    }
+    g.position.set(x, topo, z + m - 0.3);
+    g.visible = false;
+    this.cena.add(g);
+    return {
+      arena: new THREE.Vector3(x, topo, z),
+      barreira: { malha: g, caixa: new THREE.Box3(new THREE.Vector3(x - 3.2, topo, z + m - 0.7), new THREE.Vector3(x + 3.2, alto, z + m + 0.1)) },
+    };
+  }
+
   /** Coluna de pedra (sólida); quebrada = mais baixa, com pedaço caído. */
   coluna(x, z, chao, alt = 4, cor = 0x7a86a0) {
     this.bloco(x, z, chao + 0.4, 1.5, 1.5, 0.4, cor);
@@ -342,6 +460,18 @@ export class ConstrutorFase {
         pos.setXYZ(i, b.x + Math.sin(this.tempo * 1.3 + b.f) * 0.3, minY + (b.y + this.tempo * b.v) % altura, b.z + Math.cos(this.tempo + b.f) * 0.3);
       });
       pos.needsUpdate = true;
+    }
+    for (const e of this.esteiras || []) {
+      const v = e.aoLongoZ ? e.vz : e.vx;
+      e.faixas.forEach((m, i) => {
+        const d = (((i * 1.5 + this.tempo * v) % e.comp) + e.comp) % e.comp - e.comp / 2;
+        if (e.aoLongoZ) m.position.z = e.z + d * 0.94; else m.position.x = e.x + d * 0.94;
+      });
+      for (const c of corpos) if (c.apoio === e.caixa) { c.posicao.x += e.vx * dt; c.posicao.z += e.vz * dt; }
+    }
+    for (const b of this.bichos || []) {
+      b.bicho.position.y = b.y + Math.sin(this.tempo * 1.5 + b.f) * 0.3;
+      b.bicho.rotation.y += dt;
     }
     for (const { partes, f } of this.algas || []) {
       partes.forEach((p, i) => { p.rotation.z = Math.sin(this.tempo * 1.2 + f + i * 0.6) * 0.14; });
