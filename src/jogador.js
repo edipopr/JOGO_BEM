@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { GRAVIDADE, moverComColisao } from './fisica.js';
 import { PERSONAGENS } from './personagens.js';
+import { punhoRobotico } from './modelos.js';
 import { som } from './audio.js';
 
 const TEMPO_COYOTE = 0.1;  // ainda pode pular logo após sair da borda
@@ -25,6 +26,8 @@ const ATAQUES = {
   raio: { duracao: 0.3, recarga: 0.4, inicio: 0.04, fim: 0.24, alcance: 2.4, raio: 1.6, passo: 1, mira: 6 },
   projetil: { duracao: 0.25, recarga: 0.45, disparo: 0.06, passo: -1.5, mira: 15 },
   bracada: { duracao: 0.4, recarga: 0.6, inicio: 0.1, fim: 0.34, alcance: 1.5, raio: 2, passo: 3, mira: 5 },
+  // vaiEVolta: o golpe anda do corpo até o alcance e volta (punho da Nina)
+  foguete: { duracao: 0.5, recarga: 0.55, inicio: 0.04, fim: 0.46, alcance: 4.6, raio: 1.1, passo: 0.5, mira: 6.5, vaiEVolta: true },
 };
 
 function criarEfeitos() {
@@ -51,8 +54,18 @@ function criarEfeitos() {
     new THREE.MeshBasicMaterial({ color: 0xd9b3ff, transparent: true, opacity: 0.8 }),
   );
   arco.rotation.x = Math.PI / 2; // deitado, meia-volta à frente do herói
-  for (const m of [esfera, anel, feixe, clarao, arco]) { m.visible = false; grupo.add(m); }
-  return { grupo, esfera, anel, feixe, clarao, arco };
+  // Punho-foguete: dedos para a frente (+Z), cabo e chama atrás
+  const punho = new THREE.Group();
+  const mao = punhoRobotico();
+  mao.rotation.x = -Math.PI / 2;
+  mao.scale.setScalar(1.25);
+  const chama = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.5, 8), new THREE.MeshBasicMaterial({ color: 0xffa52e, transparent: true, opacity: 0.9 }));
+  chama.rotation.x = -Math.PI / 2;
+  chama.position.z = -0.45;
+  punho.add(mao, chama);
+  const cabo = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 1), new THREE.MeshBasicMaterial({ color: 0x2bb8ad }));
+  for (const m of [esfera, anel, feixe, clarao, arco, punho, cabo]) { m.visible = false; grupo.add(m); }
+  return { grupo, esfera, anel, feixe, clarao, arco, punho, chama, cabo };
 }
 
 export class Jogador {
@@ -98,6 +111,7 @@ export class Jogador {
     this.yCabeca = m.cabeca.position.y;
     this.piscam = m.piscam || [];
     this.bracoFixo = !!m.bracoFixo;
+    this.maoD = m.maoD || null; // some enquanto o punho-foguete está no ar
     this.animarModelo = m.animar || null;
     this.posBracoD = m.bracoD.position.clone();
     this.rotZBracos = [m.bracoE.rotation.z, m.bracoD.rotation.z];
@@ -142,6 +156,7 @@ export class Jogador {
     this.tempoDash = 0;
     this.tempoEscudo = 0;
     this.tempoGiro = 0;
+    this.tempoIma = 0;
     this.bracadas = 0;        // braçadas que ainda pode dar antes de tocar o chão (fases na água)
     this.tempoBracada = 99;
     this.amassado = 0;
@@ -187,20 +202,27 @@ export class Jogador {
     this.angulo = Math.atan2(dirX, dirZ);
   }
 
-  /** Protegido pelo dash, pelo campo tecnológico ou pelo giro gigante. */
-  get protegido() { return this.tempoDash > 0 || this.tempoEscudo > 0 || this.tempoGiro > 0; }
+  /** Protegido pelo dash, pelo campo tecnológico, pelo giro gigante ou pelo superímã. */
+  get protegido() { return this.tempoDash > 0 || this.tempoEscudo > 0 || this.tempoGiro > 0 || this.tempoIma > 0; }
 
   /** Área do golpe corpo a corpo ativo, ou null. */
   areaGolpe() {
     const a = this.ataque;
     if (this.tipoAtaque === 'projetil' || this.tempoAtaque < a.inicio || this.tempoAtaque > a.fim) return null;
     const r = this._area;
-    r.x = this.posicao.x + Math.sin(this.angulo) * a.alcance;
+    const alcance = a.vaiEVolta ? this._alcancePunho() : a.alcance;
+    r.x = this.posicao.x + Math.sin(this.angulo) * alcance;
     r.y = this.posicao.y + 0.8;
-    r.z = this.posicao.z + Math.cos(this.angulo) * a.alcance;
+    r.z = this.posicao.z + Math.cos(this.angulo) * alcance;
     r.raio = a.raio;
     r.dano = this.dano;
     return r;
+  }
+
+  /** Distância do punho-foguete até a heroína neste instante (sai, vai até o alcance e volta). */
+  _alcancePunho() {
+    const t = Math.min(1, this.tempoAtaque / this.ataque.duracao);
+    return this.pontoMao.z + Math.sin(t * Math.PI) * (this.ataque.alcance - this.pontoMao.z);
   }
 
   /**
@@ -410,6 +432,8 @@ export class Jogador {
       rzD = -rzE;
     }
     if (girando) { xE = xD = 0; rzE = -1.5; rzD = 1.5; }
+    const puxando = this.tempoIma > 0;
+    if (puxando) { xD = -2.7; rzD = 0.1; rzE = -0.7; } // superímã: braço robótico para o alto
     if (atacando) {
       if (this.tipoAtaque === 'onda') {
         xE = xD = 0; rzE = -1.7; rzD = 1.7; // braços abertos para os lados
@@ -419,12 +443,14 @@ export class Jogador {
         xE = xD = -1.45;
         rzE = t < 0.25 ? -1 : -1 + (t - 0.25) * 1.9;
         rzD = -rzE;
+      } else if (this.tipoAtaque === 'foguete') { // braço esticado enquanto o punho voa
+        xD = -Math.PI / 2; rzD = 0;
       } else {
         xD = -Math.PI / 2; rzD = 0;
         bracoD.position.z = this.posBracoD.z + Math.sin(t * Math.PI) * 0.3;
       }
     }
-    const kb = atacando || girando ? Math.min(1, 32 * dt) : k;
+    const kb = atacando || girando || puxando ? Math.min(1, 32 * dt) : k;
     ir(bracoE, 'x', xE, kb);
     ir(bracoE, 'z', rzE, kb);
     if (!this.bracoFixo) {
@@ -447,6 +473,20 @@ export class Jogador {
     e.clarao.visible = atacando && this.tipoAtaque === 'projetil' && t < 0.5;
     e.arco.visible = (atacando && this.tipoAtaque === 'bracada') || girando;
     const pm = this.pontoMao;
+    const voando = atacando && this.tipoAtaque === 'foguete';
+    e.punho.visible = e.cabo.visible = voando;
+    if (this.maoD) this.maoD.visible = !voando;
+    if (voando) {
+      const z = this._alcancePunho();
+      const x = pm.x * (1 - Math.sin(t * Math.PI) * 0.8); // converge para o meio (onde está a mira)
+      e.punho.position.set(x, pm.y, z);
+      e.punho.rotation.z = this.tempoVisual * 14;
+      e.chama.visible = t < 0.5;
+      e.chama.scale.setScalar(0.7 + Math.random() * 0.6);
+      e.cabo.position.set((pm.x + x) / 2, pm.y, (pm.z + z) / 2);
+      e.cabo.scale.z = Math.max(0.05, z - pm.z);
+      e.cabo.rotation.y = Math.atan2(x - pm.x, Math.max(0.1, z - pm.z));
+    }
     if (e.arco.visible) {
       e.arco.position.set(0, 0.9, 0);
       e.arco.scale.setScalar(girando ? 1.35 : 0.8 + t * 0.6);

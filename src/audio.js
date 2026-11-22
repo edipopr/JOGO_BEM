@@ -260,6 +260,11 @@ class Audio {
         this._ruido(t, 0.25, { volume: 0.4, freqFiltro: 1200, ate: 200 });
         this._tom(110, t + 0.08, 0.22, { tipo: 'sine', ate: 40, volume: 0.5 });
         break;
+      case 'ataque_foguete':
+        this._ruido(t, 0.3, { volume: 0.3, filtro: 'bandpass', freqFiltro: 700, ate: 3000 });
+        this._tom(220, t, 0.2, { tipo: 'sawtooth', ate: 640, volume: 0.12 });
+        this._tom(900, t + 0.42, 0.08, { tipo: 'square', ate: 500, volume: 0.1 }); // encaixa de volta
+        break;
       case 'nado':
         this._ruido(t, 0.22, { volume: 0.16, filtro: 'bandpass', freqFiltro: 500, ate: 1400 });
         this._tom(240, t, 0.16, { tipo: 'sine', ate: 520, volume: 0.14 });
@@ -357,6 +362,10 @@ class Audio {
       case 'hab_giro':
         for (let i = 0; i < 5; i++) this._ruido(t + i * 0.28, 0.26, { volume: 0.3, filtro: 'bandpass', freqFiltro: 500, ate: 2200 });
         this._tom(140, t, 1.4, { tipo: 'triangle', ate: 320, volume: 0.15 });
+        break;
+      case 'hab_ima':
+        for (let i = 0; i < 6; i++) this._tom(200 + i * 60, t + i * 0.14, 0.18, { tipo: 'sine', ate: 520 + i * 90, volume: 0.18 });
+        this._tom(70, t, 0.95, { tipo: 'sawtooth', ate: 160, volume: 0.14, ataque: 0.1 });
         break;
       case 'bloqueio': this._tom(1400, t, 0.12, { tipo: 'triangle', ate: 1100, volume: 0.15 }); break;
       case 'portal':

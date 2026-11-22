@@ -1,11 +1,12 @@
-// Os 5 heróis jogáveis: atributos (GDD), ataque, habilidade e modelo (src/modelos.js).
-import { modeloGuizinho, modeloIrmao, modeloTvRambon, modeloExperimentoCaixa, modeloFunBot } from './modelos.js';
+// Os 6 heróis jogáveis: atributos (GDD), ataque, habilidade e modelo (src/modelos.js).
+import { modeloGuizinho, modeloIrmao, modeloTvRambon, modeloExperimentoCaixa, modeloFunBot, modeloNina } from './modelos.js';
 
 /**
  * Atributos de 1 a 5 (do GDD). Ataques:
  *  soco     = golpe curto à frente      onda     = explosão de luz ao redor
  *  raio     = choque de alcance médio    projetil = tiro explosivo à distância
  *  bracada  = pancada larga com os braços gigantes
+ *  foguete  = punho robótico que voa para a frente e volta
  */
 export const PERSONAGENS = {
   guizinho: {
@@ -42,5 +43,12 @@ export const PERSONAGENS = {
     velocidade: 2, forca: 5, pulo: 3, altura: 1.75,
     ataque: 'bracada', nomeAtaque: 'Pancada gigante', habilidade: 'giro', pontoMao: [0, 0.9, 1.1],
     criarModelo: modeloIrmao,
+  },
+  nina: {
+    nome: 'Nina', titulo: 'A Menina Biônica', cor: '#2ed3c6',
+    descricao: 'A mais rápida! O punho robótico voa longe e volta.',
+    velocidade: 5, forca: 2, pulo: 4, altura: 1.65,
+    ataque: 'foguete', nomeAtaque: 'Punho-foguete', habilidade: 'ima', pontoMao: [0.38, 1.02, 0.6],
+    criarModelo: modeloNina,
   },
 };

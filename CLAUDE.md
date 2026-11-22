@@ -46,10 +46,11 @@ styles.css            estilos da interface
 src/main.js           inicialização, estados (inicio/selecao/jogando/pausado/caindo/vitoria/derrota), menu, pausa, salvar/continuar, loop, HUD
 src/entrada.js        teclado, mouse e toque (joystick virtual, botões Atacar/Pular)
 src/camera.js         câmera em terceira pessoa (distancia, inclinacao, alturaAlvo)
-src/personagens.js    PERSONAGENS: 5 heróis (atributos 1–5 do GDD, tipo de ataque, habilidade)
-src/modelos.js        modelos low-poly dos heróis (pivôs: bracoE/D, pernaE/D, cabeca; piscam = olhos)
-src/jogador.js        jogador com o herói escolhido: movimento, pulo, nado (fase.agua), ataques (soco/onda/raio/projetil/bracada), vida, infecção, animação
-src/habilidades.js    habilidades especiais (K / botão Poder): dash, ondaCores, campo, canhao, giro — campo "habilidade" em PERSONAGENS
+src/personagens.js    PERSONAGENS: 6 heróis (atributos 1–5 do GDD, tipo de ataque, habilidade)
+src/modelos.js        modelos low-poly dos heróis (pivôs: bracoE/D, pernaE/D, cabeca; piscam = olhos; maoD = mão que se solta no punho-foguete)
+src/retratos.js       fotografa os modelos dos heróis para os cartões da seleção (uma vez por sessão)
+src/jogador.js        jogador com o herói escolhido: movimento, pulo, nado (fase.agua), ataques (soco/onda/raio/projetil/bracada/foguete), vida, infecção, animação
+src/habilidades.js    habilidades especiais (K / botão Poder): dash, ondaCores, campo, canhao, giro, ima — campo "habilidade" em PERSONAGENS
 src/fisica.js         gravidade e colisão (cilindro × Box3); corpo.apoio = caixa em que pisa
 src/inimigo.js        inimigos da floresta (gosma, saltitante, cuspidor) + GerenciadorInimigos (combate, pontos); {invocado:true} = criatura chamada por chefão (chefao.reserva)
 src/inimigos/         comum.js (peças e movimentos), agua.js, laboratorio.js, pesadelo.js — cada tipo tem modelo(), agir(ini,dt,ctx), animar(ini,dt)
@@ -83,7 +84,7 @@ docs/PROGRESSO.md     fases de desenvolvimento e onde paramos
 - Colisão: corpo = cilindro (raio, altura) contra caixas alinhadas aos eixos (`THREE.Box3`) em `fase.caixas`. Origem nos pés; modelos olham para +Z.
 - A fase anda no sentido **-Z**; o jogador começa olhando para -Z (angulo = π) com a câmera atrás (+Z).
 - Equilíbrio: a TV Rambon (pulo 2 → ~1,7 m de altura, vel. 4,5) é o herói mais limitado; todo salto obrigatório deve ser possível com ela (degraus ≤ 1,2 m, vãos ≤ 2,5 m).
-- Novos personagens: adicionar em `PERSONAGENS` (personagens.js). Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase + registrar em `src/fases/index.js` (e em sw.js). Novos chefões: subclasse de `ChefaoBase` com métodos `_ataque_<nome>`.
+- Novos personagens: adicionar em `PERSONAGENS` (personagens.js) e em `NOMES` (painel.html); o cartão e o retrato aparecem sozinhos. Seleção: `#cartoes` (retrato + nome, 3 por linha) | `#palco` (espaço do herói 3D, enquadrado por `enquadrarVitrine` com `camera.setViewOffset`) | `#ficha` (dados do escolhido); em pé vira palco/ficha/cartões. Novos inimigos: `TIPOS` em inimigo.js. Novas fases: `src/fases/<nome>.js` usando ConstrutorFase + registrar em `src/fases/index.js` (e em sw.js). Novos chefões: subclasse de `ChefaoBase` com métodos `_ataque_<nome>`.
 - Cada fase tem seu "mundo" (cena própria) montado uma vez em main.js (`carregarFase(id)`); o jogador muda de cena com `jogador.mudarCena`.
 - Campos opcionais da fase: `agua` {gravidade, quedaMax, bracadas}, `correntes` (colunas que sobem), `infeccao: true`, `perigos(dt, jogador)` (lasers, poças, pêndulos), `limiteQueda`, `longe` (distância de visão; fases com névoa usam ~100 para ficar leve), `musicaChefao`.
 - Construtor: `arenaChefao()` monta arena + muretas + barreira; `corrente`, `esteira`, `laser`, `poca`, `pendulo`, `casteloAoLonge`... Desempenho: manter ≲ 500 desenhos por quadro (teste.html mostra "desenhos").

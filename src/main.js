@@ -17,6 +17,7 @@ import { contagem } from './contagem.js';
 import { configuracoes } from './configuracoes.js';
 import { salvamento } from './salvamento.js';
 import { Habilidades, HABILIDADES } from './habilidades.js';
+import { criarRetratos } from './retratos.js';
 
 // Atualização automática: só recarrega sozinho fora de uma partida
 configurarApp({ podeRecarregar: () => !['jogando', 'caindo', 'pausado'].includes(estado) });
@@ -146,6 +147,8 @@ const avisosVistos = new Set();
 function mostrarTela(nome) {
   for (const [chave, el] of Object.entries(telas)) el.classList.toggle('oculto', chave !== nome);
   const emJogo = nome === null;
+  document.body.dataset.tela = nome || 'jogo';
+  if (nome !== 'selecao') camera.clearViewOffset(); // só a seleção desloca a imagem (enquadrarVitrine)
   hud.classList.toggle('oculto', !emJogo);
   controlesToque.classList.toggle('oculto', !(emJogo && ehToque));
   $('btn-pausa').classList.toggle('oculto', !emJogo);
@@ -211,26 +214,59 @@ function atualizarHud() {
 
 // ----- Seleção de personagem -----
 function montarCartoes() {
-  const barra = (rotulo, valor) =>
-    `<div class="atributo"><span>${rotulo}</span><div class="barra"><i style="width:${valor * 20}%"></i></div></div>`;
   $('cartoes').innerHTML = Object.entries(PERSONAGENS).map(([id, p]) => `
     <button class="cartao" data-id="${id}" style="--cor:${p.cor}">
+      <span class="retrato"><img alt=""></span>
       <strong>${p.nome}</strong>
-      <small>${p.titulo}</small>
-      ${barra('Velocidade', p.velocidade)}${barra('Força', p.forca)}${barra('Pulo', p.pulo)}
-      <em>${p.nomeAtaque}</em>
-      <em class="poder">⚡ ${HABILIDADES[p.habilidade].nome}</em>
     </button>`).join('');
   for (const el of $('cartoes').querySelectorAll('.cartao')) {
     el.addEventListener('click', () => escolherPersonagem(el.dataset.id));
   }
 }
 
+/** Fotos dos heróis nos cartões (feitas uma vez, na primeira vez que a seleção abre). */
+let retratosProntos = false;
+function montarRetratos() {
+  if (retratosProntos) return;
+  retratosProntos = true;
+  const fotos = criarRetratos(PERSONAGENS);
+  for (const el of $('cartoes').querySelectorAll('.cartao')) {
+    if (fotos[el.dataset.id]) el.querySelector('img').src = fotos[el.dataset.id];
+  }
+}
+
+/** Ficha do herói escolhido (os cartões mostram só o retrato e o nome). */
+function montarFicha(p) {
+  const barra = (rotulo, valor) =>
+    `<div class="atributo"><span>${rotulo}</span><div class="barra"><i style="width:${valor * 20}%"></i></div></div>`;
+  $('ficha').style.setProperty('--cor', p.cor);
+  $('ficha').innerHTML = `
+    <div class="ficha-nome"><strong>${p.nome}</strong><small>${p.titulo}</small></div>
+    <p>${p.descricao}</p>
+    <div class="ficha-barras">${barra('Velocidade', p.velocidade)}${barra('Força', p.forca)}${barra('Pulo', p.pulo)}</div>
+    <div class="ficha-golpes"><em>👊 ${p.nomeAtaque}</em><em class="poder">⚡ ${HABILIDADES[p.habilidade].nome}</em></div>`;
+}
+
+/** Põe o herói no meio do espaço livre da tela (#palco), do tamanho que couber. */
+function enquadrarVitrine() {
+  const L = window.innerWidth, A = window.innerHeight;
+  const palco = $('palco'), r = palco.getBoundingClientRect();
+  const titulo = palco.firstElementChild.offsetHeight; // o herói fica abaixo do título (0 se escondido)
+  r.y += titulo; r.height -= titulo;
+  if (r.width < 10 || r.height < 10) return;
+  const alto = Math.max(jogador.altura + 0.75, 2.4), largo = 2.4; // metros que precisam aparecer
+  const porMetro = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / A;
+  cameraSeguidora.distancia = Math.max(alto / (porMetro * r.height * 0.9), largo / (porMetro * r.width * 0.95));
+  cameraSeguidora.alturaAlvo = (jogador.altura + 0.3) / 2;
+  camera.setViewOffset(L, A, L / 2 - (r.left + r.width / 2), A / 2 - (r.top + r.height / 2), L, A);
+}
+
 function escolherPersonagem(id) {
   jogador.definirPersonagem(id);
   salvarPersonagem(id);
   for (const el of $('cartoes').querySelectorAll('.cartao')) el.classList.toggle('escolhido', el.dataset.id === id);
-  $('descricao-personagem').textContent = PERSONAGENS[jogador.id].descricao;
+  montarFicha(jogador.personagem);
+  if (estado === 'selecao') enquadrarVitrine();
 }
 
 // ----- Escolha da fase -----
@@ -262,12 +298,12 @@ function abrirSelecao(modo = 'jogar') {
   $('escolha-fase').classList.toggle('oculto', modo !== 'jogar');
   if (modo === 'jogar') { montarEscolhaFase(); carregarFase(faseEscolhida); }
   jogador.reiniciar(true);
-  escolherPersonagem(jogador.id);
-  cameraSeguidora.distancia = 6;
   cameraSeguidora.inclinacao = 0.08;
-  cameraSeguidora.alturaAlvo = -0.9; // olha abaixo do herói para ele aparecer acima dos cartões
   cameraSeguidora.angulo = 0;
   mostrarTela('selecao');
+  montarRetratos();
+  escolherPersonagem(jogador.id); // depois de mostrar a tela: precisa do tamanho do #palco
+  cameraSeguidora.atualizar(jogador.posicao, 0, true);
 }
 
 // ----- Partida -----
@@ -610,6 +646,7 @@ $('btn-trocar-derrota').addEventListener('click', () => abrirSelecao());
 window.addEventListener('resize', () => {
   ajustarCamera();
   renderizador.setSize(window.innerWidth, window.innerHeight);
+  if (estado === 'selecao') enquadrarVitrine();
 });
 
 // Gancho para testes automáticos (teste.html) e depuração no console

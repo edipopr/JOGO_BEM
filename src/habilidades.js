@@ -3,6 +3,7 @@
 //  ondaCores = TV Rambon: onda colorida em volta — acerta, deixa tontos e apaga tiros inimigos
 //  campo     = Experimento Caixa: escudo por 4 s — bloqueia dano e tiros, empurra quem encostar
 //  canhao    = Mr. Fun BOT: bala de canhão grande, mira automática de longe, explosão enorme
+//  ima       = Nina: superímã — protegida, puxa os inimigos em volta e solta um choque que os deixa tontos
 //  giro      = Irmão do Guizinho: gira com os braços gigantes — protegido, acerta tudo em volta enquanto anda
 import * as THREE from 'three';
 import { som } from './audio.js';
@@ -13,12 +14,15 @@ export const HABILIDADES = {
   campo: { nome: 'Campo tecnológico', recarga: 9, duracao: 4 },
   canhao: { nome: 'Tiro de canhão', recarga: 4 },
   giro: { nome: 'Giro gigante', recarga: 6, duracao: 1.6 },
+  ima: { nome: 'Superímã', recarga: 7, duracao: 0.9 },
 };
 
 const DURACAO_DASH = 0.24;
 const VELOCIDADE_DASH = 26;
 const RAIO_ONDA = 6.5;
 const RAIO_GIRO = 2.7;
+const RAIO_IMA = 8.5;       // até onde o superímã puxa
+const RAIO_CHOQUE = 3.2;    // choque no fim do superímã
 
 export class Habilidades {
   constructor(cena) {
@@ -39,7 +43,16 @@ export class Habilidades {
       new THREE.IcosahedronGeometry(1.28, 1),
       new THREE.MeshBasicMaterial({ color: 0xaffaff, wireframe: true, transparent: true, opacity: 0.6 }),
     );
-    this.grupo.add(this.onda, this.escudo, this.escudoGrade);
+    // Anéis do superímã (fecham em direção à heroína)
+    this.aneisIma = [0, 1, 2].map(() => {
+      const anel = new THREE.Mesh(
+        new THREE.TorusGeometry(1, 0.03, 6, 40),
+        new THREE.MeshBasicMaterial({ color: 0x4dfff0, transparent: true, opacity: 0.8, depthWrite: false }),
+      );
+      anel.rotation.x = Math.PI / 2;
+      return anel;
+    });
+    this.grupo.add(this.onda, this.escudo, this.escudoGrade, ...this.aneisIma);
     this.reiniciar();
   }
 
@@ -49,6 +62,7 @@ export class Habilidades {
     this.atingidos = new Set();
     this.tempoToque = 0;
     this.onda.visible = this.escudo.visible = this.escudoGrade.visible = false;
+    for (const a of this.aneisIma) a.visible = false;
   }
 
   /** 0 = acabou de usar … 1 = pronta. */
@@ -118,6 +132,11 @@ export class Habilidades {
     som.efeito('hab_giro');
   }
 
+  _usar_ima(jogador) {
+    jogador.tempoIma = HABILIDADES.ima.duracao;
+    som.efeito('hab_ima');
+  }
+
   // ---------- Efeitos que duram alguns quadros ----------
   _continuar(dt, jogador, inimigos, projeteis, particulas) {
     const p = jogador.posicao;
@@ -145,6 +164,42 @@ export class Habilidades {
         this.tempoGolpeGiro = 0.35;
         for (const ini of inimigos.lista) {
           if (ini.ativo && ini.centro().distanceTo(centro) < ini.raio + RAIO_GIRO) inimigos.acertar(ini, 1, p.x, p.z, particulas);
+        }
+      }
+    }
+
+    // Superímã: puxa quem estiver perto (menos chefões) e termina com um choque em volta
+    const puxando = jogador.tempoIma > 0;
+    for (const a of this.aneisIma) a.visible = puxando;
+    if (puxando) {
+      const centro = p.clone().setY(p.y + 0.9);
+      jogador.tempoIma -= dt;
+      this.aneisIma.forEach((a, i) => {
+        const f = 1 - ((HABILIDADES.ima.duracao - jogador.tempoIma) * 1.8 + i / 3) % 1; // 1 = longe … 0 = na heroína
+        a.position.copy(centro);
+        a.scale.setScalar(0.4 + f * RAIO_IMA * 0.8);
+        a.material.opacity = 0.9 * (1 - f);
+      });
+      for (const ini of inimigos.lista) {
+        if (!ini.ativo || ini.bloquear) continue;
+        const dx = p.x - ini.posicao.x, dz = p.z - ini.posicao.z;
+        const d = Math.hypot(dx, dz);
+        if (d > RAIO_IMA || Math.abs(p.y - ini.posicao.y) > 3.5) continue;
+        ini.tempoAtordoado = Math.max(ini.tempoAtordoado, 0.3); // puxado não ataca nem machuca
+        const vel = d > ini.raio + 1.2 ? 10 : 0;
+        ini.velocidade.x = dx / (d || 1) * vel;
+        ini.velocidade.z = dz / (d || 1) * vel;
+      }
+      projeteis.destruirInimigos(centro, 2, particulas);
+      if (jogador.tempoIma <= 0) {
+        for (const a of this.aneisIma) a.visible = false;
+        particulas.explosao(centro, 0x4dfff0, 26, 8);
+        particulas.explosao(centro, 0xffffff, 10, 5);
+        som.efeito('choque');
+        for (const ini of inimigos.lista) {
+          if (!ini.ativo || ini.centro().distanceTo(centro) > ini.raio + RAIO_CHOQUE) continue;
+          inimigos.acertar(ini, 2, p.x, p.z, particulas);
+          if (ini.ativo && !ini.bloquear) ini.tempoAtordoado = 1.5;
         }
       }
     }

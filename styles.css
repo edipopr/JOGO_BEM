@@ -53,43 +53,6 @@ html, body {
 
 .botoes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; }
 
-/* ---------- Seleção de personagem ---------- */
-.tela-selecao {
-  justify-content: flex-end; gap: 8px; padding-bottom: 16px;
-  background: linear-gradient(rgba(10,30,40,0) 25%, rgba(10,30,40,.88) 55%);
-}
-.tela-selecao h3 { font-size: clamp(22px, 5vw, 32px); color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8; }
-.descricao-personagem { font-size: 16px; min-height: 1.2em; }
-.cartoes {
-  display: grid; grid-template-columns: repeat(5, minmax(0, 168px)); gap: 8px;
-  width: 100%; justify-content: center;
-}
-@media (max-width: 640px) { .cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; } .tela .cartao em, .tela .cartao small { display: none; } }
-.tela .cartao {
-  font: inherit; color: #fff; text-align: left; cursor: pointer;
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 10px 12px; border-radius: 14px;
-  background: rgba(0,0,0,.45); border: 3px solid transparent;
-  border-top: 6px solid var(--cor);
-  transition: transform .1s, border-color .1s;
-  box-shadow: none; font-size: 15px; font-weight: normal;
-}
-.tela .cartao:hover { transform: translateY(-3px); }
-.tela .cartao.escolhido { border-color: var(--cor); background: rgba(0,0,0,.65); transform: translateY(-4px); }
-.cartao strong { font-size: 17px; }
-.cartao small { opacity: .8; font-size: 13px; margin-bottom: 2px; }
-.cartao em { font-size: 13px; color: #ffd84a; font-style: normal; margin-top: 2px; }
-.cartao em.poder { color: #d6b8ff; margin-top: 0; }
-.atributo { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 6px; font-size: 12px; }
-.barra { height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
-.barra i { display: block; height: 100%; background: var(--cor); border-radius: 4px; }
-@media (max-height: 480px) {
-  .tela-selecao { gap: 4px; padding-bottom: 8px; }
-  .descricao-personagem, .tela-selecao h3 { display: none; }
-  .tela .cartao { padding: 6px 10px; gap: 1px; }
-  .tela button { font-size: 20px; padding: 8px 28px; }
-}
-
 .objetivos { list-style: none; text-align: left; font-size: clamp(16px, 4vw, 22px); }
 .objetivos li { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
 .objetivos .estrela-meta { font-size: 1.8em; color: #ffd84a; text-shadow: 0 3px 0 #b37b00; }
@@ -325,23 +288,98 @@ html, body {
 .hud-poder.pronto .carga-poder i { background: #ffd84a; }
 @media (pointer: coarse) { .hud-poder { display: none; } }
 @media (max-height: 420px) { .btn-poder { bottom: 128px; width: 64px; height: 64px; } }
-.escolha-fase { width: min(560px, 100%); }
-.tela .escolha-fase button:disabled { opacity: .5; cursor: default; }
 
-/* ---------- Seleção com 5 heróis e várias fases ---------- */
-.tela.tela-selecao { justify-content: safe flex-end; }
-.cartao strong { font-size: 16px; line-height: 1.1; }
-.escolha-fase { flex-wrap: wrap; width: min(900px, 100%); }
-.tela .escolha-fase button { flex: 1 0 auto; white-space: nowrap; padding: 6px 10px; }
-@media (max-height: 480px) {
-  .tela .cartao small, .tela .cartao em:not(.poder) { display: none; }
-  .cartao strong { font-size: 14px; }
-  .tela .cartao em.poder { font-size: 11px; }
-  .tela .cartao .atributo { font-size: 11px; grid-template-columns: 62px 1fr; }
-  .tela .escolha-fase button { font-size: 12px; padding: 4px 8px; }
+/* ---------- Seleção de personagem ----------
+   Deitado/PC:  heróis | palco (herói 3D) | ficha      Em pé:  palco / ficha / heróis / rodapé
+                rodapé (fases e botões)                                                     */
+body { --ficha: clamp(180px, 26vw, 320px); }
+.tela.tela-selecao {
+  display: grid; align-items: stretch; justify-content: stretch; gap: 8px 12px; padding: 12px;
+  grid-template: "herois palco ficha" minmax(0, 1fr) "rodape rodape rodape" auto
+    / minmax(0, clamp(240px, 37vw, 470px)) minmax(0, 1fr) var(--ficha);
+  background: linear-gradient(90deg, rgba(10,30,40,.75), rgba(10,30,40,0) 42%, rgba(10,30,40,0) 62%, rgba(10,30,40,.6)),
+    linear-gradient(rgba(10,30,40,0) 60%, rgba(10,30,40,.85) 85%);
 }
-.tela-selecao h3 { position: absolute; top: 12px; left: 0; right: 0; }
-.tela.tela-selecao { background: linear-gradient(rgba(10,30,40,0) 45%, rgba(10,30,40,.88) 65%); }
+.palco { grid-area: palco; min-height: 0; pointer-events: none; }
+.palco h3 { font-size: clamp(20px, 2.4vw, 32px); color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8; }
+
+.cartoes {
+  grid-area: herois; min-height: 0; 
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(70px, 150px);
+  gap: 8px; align-content: center; align-content: safe center;
+  overflow-y: auto; padding: 2px;
+}
+.tela .cartao {
+  font: inherit; color: #fff; cursor: pointer; min-width: 0; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 4px 4px 6px; border-radius: 14px;
+  background: rgba(0,0,0,.45); border: 3px solid rgba(255,255,255,.12);
+  transition: border-color .1s, background .1s; box-shadow: none;
+}
+.tela .cartao:hover, .tela .cartao:active { transform: none; box-shadow: none; border-color: var(--cor); }
+.tela .cartao.escolhido { border-color: var(--cor); background: color-mix(in srgb, var(--cor) 35%, rgba(0,0,0,.6)); }
+.retrato { flex: 1 1 0; min-height: 0; width: 100%; display: flex; justify-content: center; }
+.retrato img { height: 100%; max-width: 100%; object-fit: contain; pointer-events: none; }
+.retrato img:not([src]) { display: none; }
+.cartao strong {
+  font-size: clamp(11px, 1.3vw, 16px); line-height: 1.1; min-height: 2.2em;
+  display: flex; align-items: center; text-align: center;
+}
+
+.ficha {
+  grid-area: ficha; align-self: center; max-height: 100%; overflow-y: auto;
+  display: flex; flex-direction: column; gap: clamp(5px, 1vh, 10px);
+  padding: 12px 14px; border-radius: 16px; text-align: left;
+  background: rgba(0,0,0,.5); border-top: 6px solid var(--cor);
+}
+.ficha-nome strong { display: block; font-size: clamp(16px, 1.9vw, 24px); line-height: 1.1; }
+.ficha-nome small { font-size: clamp(12px, 1.2vw, 15px); opacity: .8; }
+.ficha p { font-size: clamp(12px, 1.25vw, 16px); line-height: 1.25; }
+.ficha-barras { display: grid; gap: 4px; }
+.ficha-golpes { display: grid; gap: 3px; }
+.ficha em { font-size: clamp(12px, 1.2vw, 15px); color: #ffd84a; font-style: normal; }
+.ficha em.poder { color: #d6b8ff; }
+.atributo { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 6px; font-size: 12px; }
+.barra { height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
+.barra i { display: block; height: 100%; background: var(--cor); border-radius: 4px; }
+
+.rodape-selecao { grid-area: rodape; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.tela-selecao .escolha-fase { width: min(1100px, 100%); }
+.tela .escolha-fase button { flex: 1 1 0; min-width: 0; padding: 6px 4px; font-size: 14px; line-height: 1.15; }
+.tela .escolha-fase button:disabled { opacity: .5; cursor: default; }
+body[data-tela="selecao"] .btn-som { top: 12px; right: calc(var(--ficha) + 24px); }
+
+@media (max-height: 560px) and (min-aspect-ratio: 1/1) { /* celular deitado */
+  .tela.tela-selecao { padding: 8px 10px; gap: 6px 10px; }
+  .palco h3 { display: none; }
+  .cartoes { gap: 6px; grid-auto-rows: minmax(64px, 112px); }
+  .ficha { padding: 8px 10px; gap: 5px; }
+  .rodape-selecao { gap: 6px; }
+  .tela .escolha-fase button { font-size: 11px; padding: 4px 3px; }
+  .tela-selecao .botoes button { font-size: 17px; padding: 6px 26px; }
+}
+@media (max-height: 560px) and (max-width: 640px) and (min-aspect-ratio: 1/1) { .tela .escolha-fase button { font-size: 10px; padding: 4px 1px; } }
+@media (max-aspect-ratio: 1/1) { /* em pé */
+  .tela.tela-selecao {
+    grid-template: "palco" minmax(120px, 1fr) "ficha" auto "herois" auto "rodape" auto / minmax(0, 1fr);
+    background: linear-gradient(rgba(10,30,40,0) 30%, rgba(10,30,40,.88) 50%);
+  }
+  .ficha {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; width: 100%; max-width: 640px; justify-self: center;
+    align-items: center; padding: 8px 12px;
+  }
+  .ficha-nome strong { font-size: 17px; }
+  .ficha p, .ficha em { font-size: 13px; }
+  .ficha-barras { grid-column: 1; grid-row: 2 / span 2; }
+  .ficha p { grid-column: 2; grid-row: 1; }
+  .ficha-golpes { grid-column: 2; grid-row: 2 / span 2; }
+  .cartoes { width: 100%; max-width: 640px; justify-self: center; gap: 6px; grid-auto-rows: clamp(72px, 12vh, 150px); overflow: visible; }
+  .cartao strong { font-size: clamp(12px, 2.4vw, 17px); min-height: 0; }
+  .tela-selecao .escolha-fase { flex-wrap: wrap; }
+  .tela .escolha-fase button { flex: 1 0 33%; font-size: 12px; }
+  .tela-selecao .botoes button { font-size: 20px; padding: 9px 30px; }
+  body[data-tela="selecao"] .btn-som { right: 12px; }
+}
 
 /* ---------- Infecção (fases contaminadas) ---------- */
 #veu-infeccao {

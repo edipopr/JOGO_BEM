@@ -1,6 +1,6 @@
-// Modelos low-poly dos 5 heróis, feitos com primitivas do Three.js.
+// Modelos low-poly dos 6 heróis, feitos com primitivas do Three.js.
 // Cada modelo devolve: grupo, bracoE/bracoD e pernaE/pernaD (pivôs no ombro/quadril), cabeca e, se quiser:
-// piscam (olhos que piscam), animar(t), bracoFixo (o braço direito não balança).
+// piscam (olhos que piscam), animar(t), bracoFixo (o braço direito não balança), maoD (mão que se solta no ataque).
 import * as THREE from 'three';
 
 const mat = (cor) => new THREE.MeshLambertMaterial({ color: cor, flatShading: true });
@@ -215,4 +215,102 @@ export function modeloFunBot() {
     luzes.forEach((l, i) => { l.visible = Math.floor(t * 3) % 3 !== i; });
   };
   return { grupo, bracoE, bracoD, pernaE, pernaD, cabeca, piscam, animar, bracoFixo: true };
+}
+
+// ---------- Nina (menina do braço robótico, cabelão castanho e óculos) ----------
+/** Punho robótico: dedos apontam para -Y (usado na mão dela e no ataque "foguete"). */
+export function punhoRobotico() {
+  const { grupo, parte } = construtor();
+  const metal = mat(0xc9d3de), escuro = mat(0x3a4450), ciano = new THREE.MeshBasicMaterial({ color: 0x4dfff0 });
+  parte(new THREE.CylinderGeometry(0.15, 0.15, 0.07, 10), ciano, 0, 0.12, 0);
+  parte(new THREE.BoxGeometry(0.3, 0.24, 0.26), metal, 0, -0.02, 0);
+  for (const x of [-0.1, 0, 0.1]) parte(new THREE.BoxGeometry(0.085, 0.14, 0.2), escuro, x, -0.19, 0.02);
+  parte(new THREE.BoxGeometry(0.09, 0.15, 0.1), escuro, -0.17, -0.08, 0.1);
+  return grupo;
+}
+
+export function modeloNina() {
+  const { grupo, parte, pivo, perna, braco, sorriso } = construtor();
+  const pele = mat(0xf2bd93), cabelo = mat(0x6e4020), mecha = mat(0x8f5a30), turquesa = mat(0x2ed3c6), jeans = mat(0x35508f);
+  const jeansClaro = mat(0x4a6bb5), amarelo = mat(0xffc93a), branco = mat(0xffffff), escuro = mat(0x2b2b2b), metal = mat(0xc9d3de), cinza = mat(0x3a4450);
+  const armacao = mat(0xe8324f), rosa = mat(0xff9d9d);
+  const matLuz = new THREE.MeshBasicMaterial({ color: 0x4dfff0 });
+  const pernaE = perna(-0.14, 0.5, 0.115, jeans, amarelo, { pe: [0.24, 0.15, 0.38] });
+  const pernaD = perna(0.14, 0.5, 0.115, jeans, amarelo, { pe: [0.24, 0.15, 0.38] });
+  for (const p of [pernaE, pernaD]) parte(new THREE.CylinderGeometry(0.135, 0.135, 0.08, 7), jeansClaro, 0, -0.3, 0, p); // barra dobrada
+  // Camiseta turquesa e jardineira jeans
+  parte(new THREE.CylinderGeometry(0.25, 0.28, 0.4, 9), turquesa, 0, 0.87, 0);
+  parte(new THREE.CylinderGeometry(0.3, 0.33, 0.24, 9), jeans, 0, 0.6, 0);
+  parte(new THREE.BoxGeometry(0.34, 0.28, 0.06), jeans, 0, 0.82, 0.25);
+  parte(new THREE.BoxGeometry(0.18, 0.12, 0.03), jeansClaro, 0, 0.81, 0.285);
+  for (const x of [-0.14, 0.14]) {
+    parte(new THREE.BoxGeometry(0.06, 0.2, 0.05), jeans, x, 1.01, 0.22).rotation.x = -0.3;
+    parte(new THREE.BoxGeometry(0.07, 0.07, 0.03), amarelo, x, 0.93, 0.275); // botões
+  }
+  const bracoE = braco(-0.34, 1.03, 0.4, 0.085, pele, pele);
+  parte(new THREE.CylinderGeometry(0.1, 0.125, 0.17, 7), turquesa, 0, -0.06, 0, bracoE); // manga
+  bracoE.rotation.z = -0.28;
+  // Braço robótico: ombro blindado, pistão, cotovelo de luz, antebraço e punho
+  const bracoD = pivo(0.38, 1.04, 0);
+  parte(new THREE.IcosahedronGeometry(0.18, 1), metal, 0, 0, 0, bracoD);
+  parte(new THREE.CylinderGeometry(0.06, 0.06, 0.07, 8), matLuz, 0.14, 0.04, 0, bracoD).rotation.z = Math.PI / 2;
+  parte(new THREE.CylinderGeometry(0.07, 0.07, 0.24, 7), cinza, 0, -0.18, 0, bracoD);
+  const cotovelo = parte(new THREE.IcosahedronGeometry(0.105, 1), matLuz, 0, -0.29, 0, bracoD);
+  parte(new THREE.CylinderGeometry(0.12, 0.16, 0.26, 8), metal, 0, -0.44, 0, bracoD);
+  parte(new THREE.CylinderGeometry(0.167, 0.167, 0.05, 8), turquesa, 0, -0.5, 0, bracoD);
+  const maoD = punhoRobotico();
+  maoD.position.y = -0.7;
+  bracoD.add(maoD);
+  bracoD.rotation.z = 0.22;
+
+  const cabeca = pivo(0, 1.1, 0);
+  parte(new THREE.CylinderGeometry(0.09, 0.1, 0.1, 7), pele, 0, -0.03, 0, cabeca);
+  parte(new THREE.IcosahedronGeometry(0.33, 2), pele, 0, 0.26, 0, cabeca);
+  // Cabelão: touca, franja, mechas nas laterais e a cabeleira comprida atrás (balança)
+  const touca = parte(new THREE.IcosahedronGeometry(0.4, 1), cabelo, 0, 0.36, -0.09, cabeca);
+  touca.scale.set(1.02, 0.95, 0.95);
+  for (const [x, z, rz] of [[-0.2, 0.2, -0.75], [0.02, 0.26, -1.25], [0.21, 0.2, 0.75]]) { // franja de lado
+    const f = parte(new THREE.IcosahedronGeometry(0.13, 0), x ? cabelo : mecha, x, 0.5, z, cabeca);
+    f.scale.set(1.5, 0.75, 0.7);
+    f.rotation.z = -rz * 0.5;
+  }
+  const lados = [-1, 1].map((s) => { // mechas na frente dos ombros
+    const g = pivo(s * 0.34, 0.36, 0.04, cabeca);
+    parte(new THREE.CylinderGeometry(0.11, 0.13, 0.5, 6), cabelo, 0, -0.2, 0, g);
+    parte(new THREE.ConeGeometry(0.13, 0.28, 6), mecha, 0, -0.58, 0, g).rotation.x = Math.PI;
+    return g;
+  });
+  const cabeleira = pivo(0, 0.42, -0.2, cabeca);
+  const massa = parte(new THREE.CylinderGeometry(0.36, 0.45, 0.8, 9), cabelo, 0, -0.38, -0.06, cabeleira);
+  massa.scale.z = 0.5;
+  for (let i = 0; i < 5; i++) { // pontas
+    const x = (i - 2) * 0.18;
+    parte(new THREE.ConeGeometry(0.14, 0.34 + (i % 2) * 0.1, 6), i % 2 ? mecha : cabelo, x, -0.9, -0.06 - 0.04 * (2 - Math.abs(i - 2)), cabeleira).rotation.x = Math.PI;
+  }
+  for (const x of [-0.2, 0.06, 0.25]) parte(new THREE.BoxGeometry(0.05, 0.72, 0.06), mecha, x, -0.4, -0.25 + Math.abs(x) * 0.25, cabeleira);
+  const laco = parte(new THREE.OctahedronGeometry(0.09, 0), turquesa, 0.33, 0.6, 0.08, cabeca); // presilha
+  laco.scale.set(1, 1, 0.6);
+  // Olhos, óculos, bochechas e sorriso
+  const piscam = [-0.14, 0.14].map((x) => {
+    const o = parte(new THREE.SphereGeometry(0.08, 8, 6), branco, x, 0.27, 0.275, cabeca);
+    parte(new THREE.SphereGeometry(0.042, 6, 4), escuro, 0, 0, 0.055, o);
+    return o;
+  });
+  for (const x of [-0.145, 0.145]) {
+    const aro = parte(new THREE.TorusGeometry(0.12, 0.022, 6, 16), armacao, x, 0.27, 0.345, cabeca);
+    aro.castShadow = false;
+    const lente = parte(new THREE.CircleGeometry(0.115, 14), new THREE.MeshBasicMaterial({ color: 0xcdf6ff, transparent: true, opacity: 0.22, depthWrite: false }), x, 0.27, 0.348, cabeca);
+    lente.castShadow = false;
+    parte(new THREE.BoxGeometry(0.025, 0.03, 0.34), armacao, Math.sign(x) * 0.28, 0.29, 0.18, cabeca); // hastes
+    parte(new THREE.SphereGeometry(0.05, 6, 4), rosa, x * 1.45, 0.13, 0.235, cabeca);
+  }
+  parte(new THREE.BoxGeometry(0.06, 0.025, 0.025), armacao, 0, 0.29, 0.35, cabeca);
+  sorriso(0.075, 0.018, mat(0xb84a4a), 0, 0.12, 0.3, cabeca);
+  const animar = (t) => {
+    matLuz.color.setHSL(0.49, 1, 0.6 + Math.sin(t * 4) * 0.12);
+    cotovelo.rotation.y = t * 2;
+    cabeleira.rotation.set(0.05 + Math.sin(t * 2.1) * 0.05, 0, Math.sin(t * 1.5) * 0.05);
+    lados.forEach((g, i) => { g.rotation.z = Math.sin(t * 1.8 + i) * 0.05; });
+  };
+  return { grupo, bracoE, bracoD, pernaE, pernaD, cabeca, piscam, animar, maoD };
 }

@@ -2,10 +2,13 @@
 
 ## Onde paramos
 - **Última atualização:** 2026-11-22
-- **Fase atual:** Fases 8 e 9 concluídas (menos Planeta Guizinho). O jogo tem **6 fases, 6 chefões e 5 heróis** e um final.
+- **Fase atual:** Fases 8 e 9 concluídas (menos Planeta Guizinho). O jogo tem **6 fases, 6 chefões e 6 heróis** e um final.
 - **Jogo online:** https://edipopr.github.io/JOGO_BEM/ (versão aparece na tela inicial)
 - **Já aprovado pelo usuário (2026-11-22):** Guardião e Monstro de Cristal, Floresta à Noite, mira automática, botão "Jogar de novo", volume e sons.
 - **Aguardando retorno do usuário:**
+  - **Nina** (heroína nova; nome provisório): velocidade 5, força 2, pulo 4; punho-foguete (`ATAQUES.foguete` em `src/jogador.js`), superímã (`ima` em `src/habilidades.js`)
+  - Nova tela de seleção (retratos + ficha)
+  - Cartões de divulgação (PDF) ainda dizem "5 heróis" e não têm a Nina
   - Irmão do Guizinho (força, velocidade, giro) — `src/personagens.js`, `ATAQUES.bracada` em `src/jogador.js`
   - Mar do Pesadelo: nado (3 braçadas; `agua` em `src/fases/mar.js`), dificuldade dos monstros de água e do Ioro (15 de vida, 5 por cansaço)
   - Laboratório, Floresta do Pesadelo, Castelo: dificuldade dos chefões (Caixa 2 = 15, Guardião da Infecção = 15, Rei = 20; 5 por cansaço)
@@ -95,6 +98,8 @@
 - [x] Modelos e animações mais caprichados (`src/modelos.js`): pernas que andam, braços com pivô no ombro, olhos que piscam, respiração, inclinação ao correr, "amassa" ao cair, pose de nado
 - [x] **Novo herói (pedido do usuário): Irmão do Guizinho** — roxo e branco, braços gigantes; ataque "Pancada gigante" (bracada), poder "Giro gigante" (protegido, acerta em volta)
 - [x] Tela de seleção com 5 cartões (herói visível acima deles) e 6 fases
+- [x] **Nova heroína (pedido do usuário): Nina** — menina de cabelão castanho, óculos e braço robótico; ataque "Punho-foguete" (vai e volta, ~6 m), poder "Superímã" (protegida, puxa inimigos e solta um choque)
+- [x] Seleção refeita para caber todos: cartões pequenos com retrato 3D, herói grande no palco e ficha só do escolhido (testada de 360×640 a 1366×768)
 
 ### Fase 9 — Demais fases e vilões
 - [x] (adiantado, pedido do usuário) **Fase 2: Floresta à Noite** (`src/fases/noite.js`): clareira enluarada, pedras flutuantes, Bosque dos Vagalumes, cogumelo-elevador, Planalto dos Cristais (trampolim secreto), Lago Escuro, Bosque Sombrio, Arena de Cristal; lanterna no herói, lua, vagalumes, cogumelos brilhantes; 27 cristais, 3 estrelas, 4 corações, 4 checkpoints; música "noite"
@@ -128,3 +133,4 @@
 - **2026-11-21:** Fase 8 (habilidades especiais) e segunda fase (Floresta à Noite + Monstro de Cristal); suporte a várias fases.
 - **2026-11-22:** Irmão do Guizinho, modelos/animações novos, fases 3 a 6 (Mar, Laboratório, Floresta do Pesadelo, Castelo) com Ioro, Experimento Caixa 2, Guardião da Infecção e Rei do Pesadelo; infecção; final do jogo. Correção: árvore tapava o herói no início da Floresta à Noite; inimigos apareciam amontoados no (0,0,0) na tela de seleção.
 - **2026-11-22:** Cartões de divulgação em PDF A4 com QR Code (`divulgacao/cartoes-guizinho.pdf`, 8 por folha).
+- **2026-11-22:** Heroína Nina (braço robótico) e nova tela de seleção com retratos, palco e ficha.
