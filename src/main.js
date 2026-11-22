@@ -254,7 +254,7 @@ function abrirSelecao(modo = 'jogar') {
   escolherPersonagem(jogador.id);
   cameraSeguidora.distancia = 6;
   cameraSeguidora.inclinacao = 0.08;
-  cameraSeguidora.alturaAlvo = -0.3; // olha abaixo do herói para ele aparecer acima dos cartões
+  cameraSeguidora.alturaAlvo = -0.9; // olha abaixo do herói para ele aparecer acima dos cartões
   cameraSeguidora.angulo = 0;
   mostrarTela('selecao');
 }

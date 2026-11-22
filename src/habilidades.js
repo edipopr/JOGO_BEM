@@ -3,6 +3,7 @@
 //  ondaCores = TV Rambon: onda colorida em volta — acerta, deixa tontos e apaga tiros inimigos
 //  campo     = Experimento Caixa: escudo por 4 s — bloqueia dano e tiros, empurra quem encostar
 //  canhao    = Mr. Fun BOT: bala de canhão grande, mira automática de longe, explosão enorme
+//  giro      = Irmão do Guizinho: gira com os braços gigantes — protegido, acerta tudo em volta enquanto anda
 import * as THREE from 'three';
 import { som } from './audio.js';
 
@@ -11,11 +12,13 @@ export const HABILIDADES = {
   ondaCores: { nome: 'Onda de cores', recarga: 6 },
   campo: { nome: 'Campo tecnológico', recarga: 9, duracao: 4 },
   canhao: { nome: 'Tiro de canhão', recarga: 4 },
+  giro: { nome: 'Giro gigante', recarga: 6, duracao: 1.6 },
 };
 
 const DURACAO_DASH = 0.24;
 const VELOCIDADE_DASH = 26;
 const RAIO_ONDA = 6.5;
+const RAIO_GIRO = 2.7;
 
 export class Habilidades {
   constructor(cena) {
@@ -109,6 +112,12 @@ export class Habilidades {
     som.efeito('hab_canhao');
   }
 
+  _usar_giro(jogador) {
+    jogador.tempoGiro = HABILIDADES.giro.duracao;
+    this.tempoGolpeGiro = 0;
+    som.efeito('hab_giro');
+  }
+
   // ---------- Efeitos que duram alguns quadros ----------
   _continuar(dt, jogador, inimigos, projeteis, particulas) {
     const p = jogador.posicao;
@@ -121,6 +130,21 @@ export class Habilidades {
         if (ini.centro().distanceTo(p.clone().setY(p.y + 0.8)) < ini.raio + 1.1) {
           this.atingidos.add(ini);
           inimigos.acertar(ini, 2, p.x, p.z, particulas);
+        }
+      }
+    }
+
+    // Giro gigante: acerta todos em volta a cada 0,35 s e rebate tiros
+    if (jogador.tempoGiro > 0) {
+      jogador.tempoGiro -= dt;
+      const centro = p.clone().setY(p.y + 0.9);
+      projeteis.destruirInimigos(centro, RAIO_GIRO, particulas);
+      if (Math.random() < dt * 25) particulas.explosao(centro, 0xd9b3ff, 2, 4);
+      this.tempoGolpeGiro -= dt;
+      if (this.tempoGolpeGiro <= 0) {
+        this.tempoGolpeGiro = 0.35;
+        for (const ini of inimigos.lista) {
+          if (ini.ativo && ini.centro().distanceTo(centro) < ini.raio + RAIO_GIRO) inimigos.acertar(ini, 1, p.x, p.z, particulas);
         }
       }
     }

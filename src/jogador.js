@@ -10,6 +10,11 @@ const ACELERACAO = 40;
 const VIDA_MAX = 5;
 const TEMPO_INVENCIVEL = 1.5;
 const FORCA_TRAMPOLIM = 21;
+const QUEDA_MAX = -40;
+
+// Debaixo d'água (fase.agua): gravidade menor e "braçadas" no meio da água com o botão de pulo
+const FORCA_BRACADA = 6.4;
+const TEMPO_BRACADA = 0.32;
 
 // Tempos (s) e alcance de cada tipo de ataque. Golpe ativo entre "inicio" e "fim".
 // mira = distância da mira automática (vira para o inimigo mais próximo ao atacar; 0 = sem mira).
@@ -18,6 +23,7 @@ const ATAQUES = {
   onda: { duracao: 0.45, recarga: 0.7, inicio: 0.08, fim: 0.32, alcance: 0, raio: 3.3, passo: 0, mira: 0 },
   raio: { duracao: 0.3, recarga: 0.4, inicio: 0.04, fim: 0.24, alcance: 2.4, raio: 1.6, passo: 1, mira: 6 },
   projetil: { duracao: 0.25, recarga: 0.45, disparo: 0.06, passo: -1.5, mira: 15 },
+  bracada: { duracao: 0.4, recarga: 0.6, inicio: 0.1, fim: 0.34, alcance: 1.5, raio: 2, passo: 3, mira: 5 },
 };
 
 function criarEfeitos() {
@@ -39,8 +45,13 @@ function criarEfeitos() {
     new THREE.IcosahedronGeometry(0.22, 0),
     new THREE.MeshBasicMaterial({ color: 0xffb02e }),
   );
-  for (const m of [esfera, anel, feixe, clarao]) { m.visible = false; grupo.add(m); }
-  return { grupo, esfera, anel, feixe, clarao };
+  const arco = new THREE.Mesh(
+    new THREE.TorusGeometry(1.7, 0.16, 6, 20, Math.PI),
+    new THREE.MeshBasicMaterial({ color: 0xd9b3ff, transparent: true, opacity: 0.8 }),
+  );
+  arco.rotation.x = Math.PI / 2; // deitado, meia-volta à frente do herói
+  for (const m of [esfera, anel, feixe, clarao, arco]) { m.visible = false; grupo.add(m); }
+  return { grupo, esfera, anel, feixe, clarao, arco };
 }
 
 export class Jogador {
@@ -79,7 +90,12 @@ export class Jogador {
     this.personagem = p;
     const m = p.criarModelo();
     this.modelo = m.grupo;
+    this.modelo.rotation.order = 'YXZ';
     this.bracos = [m.bracoE, m.bracoD];
+    this.pernas = [m.pernaE, m.pernaD];
+    this.cabeca = m.cabeca;
+    this.yCabeca = m.cabeca.position.y;
+    this.piscam = m.piscam || [];
     this.bracoFixo = !!m.bracoFixo;
     this.animarModelo = m.animar || null;
     this.posBracoD = m.bracoD.position.clone();
@@ -90,7 +106,7 @@ export class Jogador {
     this.altura = p.altura;
     this.vMax = 3 + p.velocidade * 0.75;          // 4 → 6
     this.forcaPulo = 9 + p.pulo * 0.75;           // 4 → 12
-    this.dano = p.forca >= 4 ? 2 : 1;
+    this.dano = p.forca >= 5 ? 3 : p.forca >= 4 ? 2 : 1;
     this.ataque = ATAQUES[p.ataque];
     this.tipoAtaque = p.ataque;
     this.pontoMao = new THREE.Vector3(...p.pontoMao);
@@ -124,6 +140,10 @@ export class Jogador {
     this.tempoInvencivel = 1;
     this.tempoDash = 0;
     this.tempoEscudo = 0;
+    this.tempoGiro = 0;
+    this.bracadas = 0;        // braçadas que ainda pode dar antes de tocar o chão (fases na água)
+    this.tempoBracada = 99;
+    this.amassado = 0;
   }
 
   /** Dash de energia: corre reto e rápido por alguns instantes, protegido. */
@@ -133,8 +153,8 @@ export class Jogador {
     this.angulo = Math.atan2(dirX, dirZ);
   }
 
-  /** Protegido pelo dash ou pelo campo tecnológico. */
-  get protegido() { return this.tempoDash > 0 || this.tempoEscudo > 0; }
+  /** Protegido pelo dash, pelo campo tecnológico ou pelo giro gigante. */
+  get protegido() { return this.tempoDash > 0 || this.tempoEscudo > 0 || this.tempoGiro > 0; }
 
   /** Área do golpe corpo a corpo ativo, ou null. */
   areaGolpe() {
@@ -203,12 +223,15 @@ export class Jogador {
     this.tempoInvencivel = Math.max(0, this.tempoInvencivel - dt);
     const empurrado = this.tempoInvencivel > TEMPO_INVENCIVEL - 0.3; // sem controle logo após levar dano
     this.quicou = false;
+    this.nadou = false;
+    const agua = fase.agua;
+    this.naAgua = !!agua;
 
     // ----- Direção relativa à câmera -----
     const dir = entrada.direcao();
     const mx = eixos.frente.x * dir.y + eixos.direita.x * dir.x;
     const mz = eixos.frente.z * dir.y + eixos.direita.z * dir.x;
-    const vMax = entrada.correndo() ? this.vMax * 1.65 : this.vMax;
+    const vMax = (entrada.correndo() ? this.vMax * 1.65 : this.vMax) * (agua ? 0.9 : 1);
     if (!empurrado) {
       const passo = ACELERACAO * dt * (this.noChao ? 1 : 0.6);
       this.velocidade.x += THREE.MathUtils.clamp(mx * vMax - this.velocidade.x, -passo, passo);
@@ -246,13 +269,29 @@ export class Jogador {
     if (entrada.consumirPulo()) this.tempoPulo = 0;
     else this.tempoPulo += dt;
     this.tempoForaDoChao = this.noChao ? 0 : this.tempoForaDoChao + dt;
+    this.tempoBracada += dt;
+    if (this.noChao && agua) this.bracadas = agua.bracadas;
     if (this.tempoPulo < BUFFER_PULO && this.tempoForaDoChao < TEMPO_COYOTE) {
-      this.velocidade.y = this.forcaPulo;
-      som.efeito('pulo');
+      this.velocidade.y = this.forcaPulo * (agua ? 0.72 : 1);
+      som.efeito(agua ? 'nado' : 'pulo');
       this.tempoPulo = 99;
       this.tempoForaDoChao = 99;
+      this.tempoBracada = 0;
+    } else if (agua && this.tempoPulo < BUFFER_PULO && this.bracadas > 0 && this.tempoBracada > TEMPO_BRACADA) {
+      this.velocidade.y = Math.max(this.velocidade.y, FORCA_BRACADA); // braçada: nada para cima
+      this.bracadas--;
+      this.tempoPulo = 99;
+      this.tempoBracada = 0;
+      this.nadou = true;
+      som.efeito('nado');
     }
-    this.velocidade.y = Math.max(this.velocidade.y + GRAVIDADE * dt, -40);
+    this.velocidade.y = Math.max(this.velocidade.y + GRAVIDADE * (agua ? agua.gravidade : 1) * dt, agua ? agua.quedaMax : QUEDA_MAX);
+    // Correntes (colunas de bolhas/ar) que empurram para cima
+    for (const c of fase.correntes || []) {
+      if (!c.caixa.containsPoint(this.posicao)) continue;
+      this.velocidade.y += (c.forca - this.velocidade.y) * Math.min(1, 6 * dt);
+      if (agua) this.bracadas = agua.bracadas;
+    }
     if (this.tempoDash > 0) { // dash: ignora gravidade e controle
       this.tempoDash -= dt;
       this.velocidade.set(this.dash.x, 0, this.dash.z);
@@ -260,7 +299,9 @@ export class Jogador {
     }
 
     // ----- Movimento + colisão -----
+    const vyAntes = this.velocidade.y, noChaoAntes = this.noChao;
     this.noChao = moverComColisao(this, fase.caixas, dt);
+    if (this.noChao && !noChaoAntes && vyAntes < -6) this.amassado = Math.min(0.28, -vyAntes * 0.014); // aterrissou
     if (this.noChao && fase.trampolins.has(this.apoio)) {
       this.velocidade.y = FORCA_TRAMPOLIM;
       this.noChao = false;
@@ -269,7 +310,7 @@ export class Jogador {
     }
 
     // Caiu no vazio: perde 1 coração e volta ao checkpoint
-    if (this.posicao.y < -25) {
+    if (this.posicao.y < (fase.limiteQueda ?? -25)) {
       this.vida--;
       if (this.vida > 0) this.renascer();
     }
@@ -296,28 +337,68 @@ export class Jogador {
       this.angulo += diff * Math.min(1, 15 * dt);
     }
     this.tempoAnimacao += dt * vHoriz * 1.6;
-    const balanco = this.noChao ? Math.sin(this.tempoAnimacao) * Math.min(1, vHoriz / 6) : 0;
+    const ritmo = Math.min(1, vHoriz / 6);
+    const balanco = this.noChao ? Math.sin(this.tempoAnimacao) * ritmo : 0;
+    const girando = this.tempoGiro > 0;
+    const nadando = this.naAgua && !this.noChao;
+    const k = Math.min(1, 14 * dt);
+    const ir = (obj, eixo, valor, vel = k) => { obj.rotation[eixo] += (valor - obj.rotation[eixo]) * vel; };
+
+    // Pernas: andam no chão, encolhem no pulo, batem na água
+    const [pernaE, pernaD] = this.pernas;
+    if (this.noChao) {
+      ir(pernaE, 'x', -balanco * 0.9);
+      ir(pernaD, 'x', balanco * 0.9);
+    } else if (nadando) {
+      const chute = Math.sin(this.tempoVisual * 9) * 0.5;
+      ir(pernaE, 'x', 0.3 + chute);
+      ir(pernaD, 'x', 0.3 - chute);
+    } else {
+      const subindo = this.velocidade.y > 0;
+      ir(pernaE, 'x', subindo ? -0.7 : -0.25);
+      ir(pernaD, 'x', subindo ? 0.45 : 0.3);
+    }
 
     // Braços
     const [bracoE, bracoD] = this.bracos;
-    bracoE.rotation.x = balanco * 0.8;
-    bracoE.rotation.z = this.rotZBracos[0];
-    bracoD.rotation.z = this.rotZBracos[1];
+    const [zE, zD] = this.rotZBracos;
+    const respira = Math.sin(this.tempoVisual * 2.2) * 0.04;
     bracoD.position.copy(this.posBracoD);
-    if (!this.bracoFixo) bracoD.rotation.x = -balanco * 0.8;
+    let xE = balanco * 0.9, xD = -balanco * 0.9, rzE = zE - respira, rzD = zD + respira;
+    if (!this.noChao) { // no ar: braços abertos; na água: remada
+      const remada = nadando ? Math.max(0, 1 - this.tempoBracada / 0.45) : 0;
+      xE = xD = nadando ? -0.5 + remada * 1.1 : 0;
+      rzE = nadando ? -1 + remada * 0.8 : -1.1;
+      rzD = -rzE;
+    }
+    if (girando) { xE = xD = 0; rzE = -1.5; rzD = 1.5; }
     if (atacando) {
       if (this.tipoAtaque === 'onda') {
-        bracoE.rotation.x = bracoD.rotation.x = 0; // braços abertos para os lados
-        bracoE.rotation.z = -1.2;
-        bracoD.rotation.z = 1.2;
+        xE = xD = 0; rzE = -1.7; rzD = 1.7; // braços abertos para os lados
       } else if (this.tipoAtaque === 'projetil') {
-        bracoD.position.z = this.posBracoD.z - Math.sin(t * Math.PI) * 0.15; // coice do canhão
+        bracoD.position.z = this.posBracoD.z - Math.sin(t * Math.PI) * 0.18; // coice do canhão
+      } else if (this.tipoAtaque === 'bracada') { // os dois braços varrem de fora para dentro
+        xE = xD = -1.45;
+        rzE = t < 0.25 ? -1 : -1 + (t - 0.25) * 1.9;
+        rzD = -rzE;
       } else {
-        bracoD.rotation.x = Math.PI / 2;
-        bracoD.position.z = this.posBracoD.z + 0.35;
+        xD = -Math.PI / 2; rzD = 0;
+        bracoD.position.z = this.posBracoD.z + Math.sin(t * Math.PI) * 0.3;
       }
     }
+    const kb = atacando || girando ? Math.min(1, 32 * dt) : k;
+    ir(bracoE, 'x', xE, kb);
+    ir(bracoE, 'z', rzE, kb);
+    if (!this.bracoFixo) {
+      ir(bracoD, 'x', xD, kb);
+      ir(bracoD, 'z', rzD, kb);
+    }
 
+    // Cabeça (respira) e olhos (piscam de vez em quando)
+    this.cabeca.position.y = this.yCabeca + respira * 0.6 + Math.abs(balanco) * 0.03;
+    this.cabeca.rotation.z = balanco * 0.06;
+    const piscando = this.tempoVisual % 3.4 < 0.12;
+    for (const o of this.piscam) o.scale.y = piscando ? 0.15 : 1;
     // Efeitos do ataque
     const e = this.efeitos;
     e.grupo.position.copy(this.posicao);
@@ -326,7 +407,14 @@ export class Jogador {
     e.anel.visible = atacando && this.tipoAtaque === 'onda';
     e.feixe.visible = atacando && this.tipoAtaque === 'raio' && t < 0.8;
     e.clarao.visible = atacando && this.tipoAtaque === 'projetil' && t < 0.5;
+    e.arco.visible = (atacando && this.tipoAtaque === 'bracada') || girando;
     const pm = this.pontoMao;
+    if (e.arco.visible) {
+      e.arco.position.set(0, 0.9, 0);
+      e.arco.scale.setScalar(girando ? 1.35 : 0.8 + t * 0.6);
+      e.arco.rotation.z = girando ? this.tempoVisual * 20 : 0;
+      e.arco.material.opacity = girando ? 0.7 : 0.9 * (1 - t);
+    }
     if (e.esfera.visible) {
       e.esfera.position.copy(pm);
       e.esfera.scale.setScalar(0.6 + Math.sin(t * Math.PI) * 0.8);
@@ -350,8 +438,15 @@ export class Jogador {
 
     if (this.animarModelo) this.animarModelo(this.tempoVisual);
     this.modelo.position.copy(this.posicao);
-    this.modelo.position.y += this.noChao ? Math.abs(balanco) * 0.06 : 0;
-    this.modelo.rotation.y = this.angulo;
+    this.modelo.position.y += this.noChao ? Math.abs(balanco) * 0.08 : 0;
+    this.modelo.rotation.y = this.angulo + (girando ? this.tempoVisual * 22 : 0);
+    // Inclina para a frente ao correr/nadar, "amassa" ao cair no chão e estica no pulo
+    const inclina = girando ? 0 : nadando ? 0.35 + ritmo * 0.45 : ritmo * 0.14;
+    ir(this.modelo, 'x', inclina, Math.min(1, 8 * dt));
+    this.amassado = Math.max(0, this.amassado - dt * 1.4);
+    const estica = !this.noChao && !nadando ? THREE.MathUtils.clamp(this.velocidade.y * 0.008, -0.05, 0.09) : 0;
+    const ey = 1 - this.amassado + estica;
+    this.modelo.scale.set(1 / Math.sqrt(ey), ey, 1 / Math.sqrt(ey));
     // Pisca enquanto está invencível
     this.modelo.visible = this.tempoInvencivel <= 0 || Math.floor(this.tempoInvencivel * 12) % 2 === 0;
   }

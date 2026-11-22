@@ -61,10 +61,10 @@ html, body {
 .tela-selecao h3 { font-size: clamp(22px, 5vw, 32px); color: #ffd84a; text-shadow: 0 3px 0 #6a2bb8; }
 .descricao-personagem { font-size: 16px; min-height: 1.2em; }
 .cartoes {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 170px)); gap: 10px;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 168px)); gap: 8px;
   width: 100%; justify-content: center;
 }
-@media (max-width: 640px) { .cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; } .tela .cartao em, .tela .cartao small { display: none; } }
 .tela .cartao {
   font: inherit; color: #fff; text-align: left; cursor: pointer;
   display: flex; flex-direction: column; gap: 3px;
@@ -327,3 +327,18 @@ html, body {
 @media (max-height: 420px) { .btn-poder { bottom: 128px; width: 64px; height: 64px; } }
 .escolha-fase { width: min(560px, 100%); }
 .tela .escolha-fase button:disabled { opacity: .5; cursor: default; }
+
+/* ---------- Seleção com 5 heróis e várias fases ---------- */
+.tela.tela-selecao { justify-content: safe flex-end; }
+.cartao strong { font-size: 16px; line-height: 1.1; }
+.escolha-fase { flex-wrap: wrap; width: min(900px, 100%); }
+.tela .escolha-fase button { flex: 1 0 auto; white-space: nowrap; padding: 6px 10px; }
+@media (max-height: 480px) {
+  .tela .cartao small, .tela .cartao em:not(.poder) { display: none; }
+  .cartao strong { font-size: 14px; }
+  .tela .cartao em.poder { font-size: 11px; }
+  .tela .cartao .atributo { font-size: 11px; grid-template-columns: 62px 1fr; }
+  .tela .escolha-fase button { font-size: 12px; padding: 4px 8px; }
+}
+.tela-selecao h3 { position: absolute; top: 12px; left: 0; right: 0; }
+.tela.tela-selecao { background: linear-gradient(rgba(10,30,40,0) 45%, rgba(10,30,40,.88) 65%); }
