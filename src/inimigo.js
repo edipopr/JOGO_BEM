@@ -1,38 +1,16 @@
-// Criaturas contaminadas — 3 tipos:
+// Criaturas contaminadas. Tipos da floresta (os outros estão em src/inimigos/):
 //  gosma      = gosma roxa que persegue (2 de vida)
 //  saltitante = gosminha verde que pula na sua direção (1 de vida, rápida)
 //  cuspidor   = cogumelo contaminado parado que cospe bolas de gosma (3 de vida)
 import * as THREE from 'three';
 import { GRAVIDADE, moverComColisao } from './fisica.js';
 import { som } from './audio.js';
+import { matLambert, olhos, manchas } from './inimigos/comum.js';
+import { TIPOS_AGUA } from './inimigos/agua.js';
 
 const DISTANCIA_VISAO = 10;
 const DISTANCIA_MAX_CASA = 16; // não se afasta demais de onde nasceu
 const TEMPO_RENASCER = 10;
-
-const matLambert = (cor) => new THREE.MeshLambertMaterial({ color: cor, flatShading: true, emissive: 0x000000 });
-
-function olhos(pai, y, z, separacao, tamanho, cor = 0xc6ff3d) {
-  const matOlho = new THREE.MeshBasicMaterial({ color: cor });
-  const matPupila = new THREE.MeshBasicMaterial({ color: 0x111111 });
-  for (const x of [-separacao, separacao]) {
-    const olho = new THREE.Mesh(new THREE.SphereGeometry(tamanho, 6, 5), matOlho);
-    olho.position.set(x, y, z);
-    const pupila = new THREE.Mesh(new THREE.SphereGeometry(tamanho * 0.45, 5, 4), matPupila);
-    pupila.position.z = tamanho * 0.75;
-    olho.add(pupila);
-    pai.add(olho);
-  }
-}
-
-function manchas(pai, lista, cor, tamanho) {
-  const m = new THREE.MeshLambertMaterial({ color: cor, flatShading: true });
-  for (const [x, y, z] of lista) {
-    const mancha = new THREE.Mesh(new THREE.SphereGeometry(tamanho, 5, 4), m);
-    mancha.position.set(x, y, z);
-    pai.add(mancha);
-  }
-}
 
 function modeloGosma() {
   const grupo = new THREE.Group();
@@ -74,7 +52,14 @@ function modeloCuspidor() {
   return { grupo, corpo, material, escalaY: 1 };
 }
 
+/**
+ * Cada tipo: vida, raio, altura, pontos, cor, modelo() e, nos tipos novos:
+ *   agir(ini, dt, ctx) = movimento/ataque    animar(ini, dt) = visual
+ *   voa = sem gravidade   fixo = não é empurrado   semGiro = o próprio agir() controla o ângulo
+ *   visao / visaoY = distância em que enxerga o herói
+ */
 const TIPOS = {
+  ...TIPOS_AGUA,
   gosma: { vida: 2, raio: 0.6, altura: 0.9, pontos: 50, modelo: modeloGosma, cor: 0x7a3cff },
   saltitante: { vida: 1, raio: 0.4, altura: 0.75, pontos: 30, modelo: modeloSaltitante, cor: 0x7ddc3a },
   cuspidor: { vida: 3, raio: 0.65, altura: 1.4, pontos: 80, modelo: modeloCuspidor, cor: 0x8b2fc9 },
@@ -89,6 +74,8 @@ export class Inimigo {
     this.corpo = m.corpo;
     this.material = m.material;
     this.escalaY = m.escalaY;
+    this.m = m; // peças do modelo (para animar)
+    this.emissivoBase = 0x000000;
     cena.add(this.modelo);
 
     this.casa = pontoInicial.clone();
@@ -112,6 +99,7 @@ export class Inimigo {
     this.tempoAcao = 1 + Math.random();
     this.direcaoVagar = { x: 0, z: 0 };
     this.angulo = 0;
+    this.bote = 0; this.investida = 0; this.tempoChoque = 0; // usados pelos tipos de src/inimigos/
     this.modelo.visible = true;
   }
 
@@ -130,7 +118,7 @@ export class Inimigo {
     this.vida -= dano;
     this.tempoBrilho = 0.15;
     this.tempoAtordoado = 0.45;
-    if (this.tipo !== 'cuspidor') { // o cogumelo tem raiz: não é empurrado
+    if (this.tipo !== 'cuspidor' && !this.cfg.fixo) { // o cogumelo tem raiz: não é empurrado
       const d = Math.hypot(dx, dz) || 1;
       this.velocidade.set(dx / d * 9, 5, dz / d * 9);
     }
@@ -153,11 +141,14 @@ export class Inimigo {
     const dist = Math.hypot(dx, dz);
     const dy = Math.abs(jogador.posicao.y - p.y);
     const distCasa = Math.hypot(this.casa.x - p.x, this.casa.z - p.z);
-    const vendo = dist < DISTANCIA_VISAO && dy < 2.5 && distCasa < DISTANCIA_MAX_CASA && dist > 0.01 && jogador.vida > 0;
+    const vendo = dist < (this.cfg.visao ?? DISTANCIA_VISAO) && dy < (this.cfg.visaoY ?? 2.5) && distCasa < DISTANCIA_MAX_CASA && dist > 0.01 && jogador.vida > 0;
 
     if (this.tempoAtordoado > 0) {
       this.tempoAtordoado -= dt;
       v.x *= 0.92; v.z *= 0.92;
+      if (this.cfg.voa) v.y *= 0.9;
+    } else if (this.cfg.agir) {
+      this.cfg.agir(this, dt, { jogador, projeteis, dx, dz, dist: dist || 0.01, dy, distCasa, vendo });
     } else if (this.tipo === 'gosma') {
       this._andarGosma(dt, vendo, dx, dz, dist, distCasa);
     } else if (this.tipo === 'saltitante') {
@@ -165,7 +156,7 @@ export class Inimigo {
     } else {
       this._cuspir(dt, jogador, dx, dz, dist, dy, projeteis);
     }
-    v.y = Math.max(v.y + GRAVIDADE * dt, -40);
+    if (!this.cfg.voa) v.y = Math.max(v.y + GRAVIDADE * dt, -40);
 
     this.noChao = moverComColisao(this, caixas, dt);
     if (p.y < -25) { this.derrotar(); return; }
@@ -234,13 +225,15 @@ export class Inimigo {
   _atualizarVisual(dt) {
     const v = this.velocidade;
     const vHoriz = Math.hypot(v.x, v.z);
-    if (vHoriz > 0.2 && this.tipo !== 'cuspidor') {
+    if (vHoriz > 0.2 && this.tipo !== 'cuspidor' && !this.cfg.semGiro) {
       const alvo = Math.atan2(v.x, v.z);
       const diff = Math.atan2(Math.sin(alvo - this.angulo), Math.cos(alvo - this.angulo));
       this.angulo += diff * Math.min(1, 8 * dt);
     }
     const ey = this.escalaY;
-    if (this.tipo === 'gosma') {
+    if (this.cfg.animar) {
+      this.cfg.animar(this, dt);
+    } else if (this.tipo === 'gosma') {
       const pulo = Math.sin(this.tempo * (vHoriz > 2 ? 14 : 7));
       this.corpo.scale.set(1 - pulo * 0.06, ey + pulo * 0.08, 1 - pulo * 0.06);
     } else if (this.tipo === 'saltitante') {
@@ -252,7 +245,7 @@ export class Inimigo {
       this.corpo.scale.set(infla, 1 / infla, infla);
     }
     this.tempoBrilho -= dt;
-    this.material.emissive.setHex(this.tempoBrilho > 0 ? 0xffffff : 0x000000);
+    this.material.emissive.setHex(this.tempoBrilho > 0 ? 0xffffff : this.emissivoBase);
     this.modelo.position.copy(this.posicao);
     this.modelo.rotation.y = this.angulo;
   }

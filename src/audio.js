@@ -45,6 +45,31 @@ const MUSICAS = {
                    E2 . . . B2 . . . | A2 . . . E2 . . . | C2 . . . D2 . . . | E2 . . . B1 . . .`),
     bateria: padrao(`k . . h . . s . | k . . h . h s .`),
   },
+  // Mar do Pesadelo: lenta, balançando como as ondas
+  mar: {
+    bpm: 92, volume: 0.45,
+    melodia: padrao(`D5 . F5 A5 . F5 E5 . | C5 . E5 G5 . E5 D5 . | A#4 . D5 F5 . D5 C5 . | A4 . C5 E5 . . . .
+                     D5 . F5 A5 . C6 A5 . | G5 . E5 C5 . E5 G5 . | F5 . D5 A#4 . D5 F5 . | E5 . C#5 A4 . . . .`),
+    baixo: padrao(`D2 . . A2 . . D3 . | C2 . . G2 . . C3 . | A#1 . . F2 . . A#2 . | A1 . . E2 . . A2 .
+                   D2 . . A2 . . D3 . | C2 . . G2 . . C3 . | A#1 . . F2 . . A#2 . | A1 . . E2 . . A2 .`),
+    bateria: padrao(`k . . h . . h . | k . . h . s . .`),
+  },
+  // Abismo e ruínas: tensa e funda
+  abismo: {
+    bpm: 84, volume: 0.45,
+    melodia: padrao(`D4 . . . F4 . E4 . | D4 . . . G#4 . . . | A4 . . . G4 . F4 . | E4 . . . C#4 . . .`),
+    baixo: padrao(`D2 . D2 . . . D2 . | A#1 . A#1 . . . A#1 . | G1 . G1 . . . G1 . | A1 . A1 . . . A1 .`),
+    bateria: padrao(`k . . . k . h . | k . . h s . . .`),
+  },
+  // Ioro: marchinha de circo maluca (menor)
+  chefaoIoro: {
+    bpm: 168, volume: 0.48,
+    melodia: padrao(`D5 C#5 D5 C#5 D5 A4 F4 A4 | D5 C#5 D5 E5 F5 E5 D5 . | E5 D#5 E5 D#5 E5 C#5 A4 C#5 | E5 F5 E5 D5 C#5 B4 A4 .
+                     F5 E5 F5 E5 F5 D5 A4 D5 | G5 F5 G5 A5 A#5 A5 G5 . | A5 . G5 F5 E5 . D5 C#5 | D5 . A4 . D5 . . .`),
+    baixo: padrao(`D2 . A2 . D2 . A2 . | D2 . A2 . D2 . A2 . | A1 . E2 . A1 . E2 . | A1 . E2 . A1 . E2 .
+                   D2 . A2 . D2 . A2 . | G1 . D2 . G1 . D2 . | A1 . E2 . A1 . E2 . | D2 . A2 . D2 . D2 .`),
+    bateria: padrao(`k . s . k . s . | k . s h k s s h`),
+  },
   // Monstro de Cristal: rápida e "brilhante"
   chefaoCristal: {
     bpm: 160, volume: 0.5,
@@ -255,6 +280,9 @@ class Audio {
         this._tom(140, t, 1.4, { tipo: 'sawtooth', ate: 40, volume: 0.25, ataque: 0.05 });
         this._ruido(t, 1.2, { volume: 0.35, freqFiltro: 2000, ate: 100 });
         this._arpejo(['C5', 'E5', 'G5', 'C6', 'E6', 'G6', 'C7'], t + 1.3, 0.1, { tipo: 'triangle', volume: 0.18 });
+        break;
+      case 'palhaco': // risada: ha-ha-ha-ha
+        for (let i = 0; i < 5; i++) this._tom(520 - i * 45, t + i * 0.13, 0.11, { tipo: 'sawtooth', ate: 380 - i * 40, volume: 0.2 });
         break;
       // ----- Habilidades especiais -----
       case 'hab_dash':

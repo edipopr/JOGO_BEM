@@ -28,7 +28,7 @@ f.addEventListener('load', () => {
   };
   setTimeout(() => {
     if (q.get('fase')) { // libera as fases para o teste
-      w.localStorage.setItem('guizinho.recordes', JSON.stringify({ floresta: { concluida: true, melhorPontos: 0, melhorTempo: 999, maxEstrelas: 0, todosCristais: false } }));
+      w.localStorage.setItem('guizinho.recordes', JSON.stringify(Object.fromEntries(['floresta', 'noite', 'mar', 'laboratorio', 'pesadelo', 'castelo'].map((id) => [id, { concluida: true, melhorPontos: 0, melhorTempo: 999, maxEstrelas: 0, todosCristais: false }]))));
     }
     d.getElementById('btn-jogar').click();
     if (q.get('heroi')) d.querySelector(`.cartao[data-id="${q.get('heroi')}"]`).click();
@@ -39,9 +39,30 @@ f.addEventListener('load', () => {
       const [x, y, z] = q.get('teleporte').split(',').map(Number);
       g().jogador.posicao.set(x, y, z);
     }
+    if (q.get('giro')) w.guizinhoDebug.camera.angulo = Number(q.get('giro')); // gira a câmera (rad)
+    if (q.get('inclina')) w.guizinhoDebug.camera.inclinacao = Number(q.get('inclina'));
+    if (q.get('distancia')) w.guizinhoDebug.camera.distancia = Number(q.get('distancia'));
     for (const acao of q.get('roteiro').split(',')) {
       const [nome, seg] = acao.split(':');
-      if (nome === 'espera') simular(Number(seg));
+      if (nome === 'vida') g().jogador.vida = g().jogador.vidaMax = Number(seg); // vida:99
+      else if (nome === 'pacifico') g().inimigos.lista.forEach((i) => { if (!i.bloquear) { i.derrotar(); i.tempoRenascer = 1e9; } }); // some com os inimigos
+      else if (nome === 'luta') { // luta:60 = ataca o chefão quando ele cansa (até 60 s) e registra os estados por que passou
+        const vistos = {}; let ant = '';
+        for (let s = 0; s < Number(seg) && g().chefao.ativo; s += 1 / 30) {
+          const c = g().chefao, j = g().jogador;
+          if (c.estado !== ant) { ant = c.estado; vistos[ant] = (vistos[ant] || 0) + 1; }
+          if (c.estado === 'vulneravel') {
+            const dx = j.posicao.x - c.posicao.x, dz = j.posicao.z - c.posicao.z, r = Math.hypot(dx, dz) || 1;
+            j.posicao.set(c.posicao.x + dx / r * (c.raio + 1), c.posicao.y, c.posicao.z + dz / r * (c.raio + 1));
+            j.angulo = Math.atan2(-dx, -dz);
+            j.velocidade.set(0, 0, 0);
+            tecla('keydown', 'KeyJ'); tecla('keyup', 'KeyJ');
+          }
+          g().passo(1 / 30);
+        }
+        log('estados: ' + JSON.stringify(vistos));
+      }
+      else if (nome === 'espera') simular(Number(seg));
       else if (nome[0] === '+') tecla('keydown', 'Key' + nome.slice(1)); // segura
       else if (nome[0] === '-') tecla('keyup', 'Key' + nome.slice(1));   // solta
       else if (seg) { tecla('keydown', 'Key' + nome); simular(Number(seg)); tecla('keyup', 'Key' + nome); }
@@ -50,6 +71,7 @@ f.addEventListener('load', () => {
       estado(acao);
     }
     g().passo(1 / 30, true);
+    log(`desenhos: ${g().renderizador.info.render.calls} triangulos: ${g().renderizador.info.render.triangles}`);
     {
     }
   }, 800);

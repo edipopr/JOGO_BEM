@@ -92,6 +92,8 @@ function carregarFase(id) {
     jogador.mudarCena(cena, fase.pontoInicial);
     corpos = [jogador, ...inimigos.lista]; // carregados pelas plataformas móveis
   }
+  camera.far = fase.longe ?? 220; // fases com névoa fechada enxergam menos longe (mais leve no celular)
+  camera.updateProjectionMatrix();
   vidaMostrada = -1;
 }
 
@@ -592,7 +594,7 @@ window.addEventListener('resize', () => {
 
 // Gancho para testes automáticos (teste.html) e depuração no console
 window.guizinhoDebug = {
-  jogador, som, contagem, salvamento, carregarFase,
+  jogador, som, contagem, salvamento, carregarFase, camera: cameraSeguidora, renderizador,
   get inimigos() { return inimigos; }, get habilidades() { return habilidades; }, get chefao() { return chefao; },
   get portal() { return portal; }, get fase() { return fase; }, get itens() { return itens; }, get checkpoints() { return checkpoints; },
   passo: (dt, desenhar = false) => passo(dt, desenhar), get estado() { return estado; },
@@ -639,6 +641,7 @@ function passo(dt, desenhar = true) {
       som.musica(chefao.acordado ? (fase.musicaChefao || 'chefao') : fase.musicaEm(jogador.posicao));
       habilidades.atualizar(dt, { jogador, entrada, eixos: cameraSeguidora.eixos(), inimigos, projeteis, particulas });
       jogador.atualizar(dt, entrada, cameraSeguidora.eixos(), fase, projeteis);
+      if (jogador.nadou) particulas.explosao(jogador.posicao, 0xbfefff, 8, 2.5); // bolhas da braçada
       if (jogador.quicou) particulas.explosao(jogador.posicao, 0xff6b9d, 10, 4);
       itens.atualizar(dt, jogador, particulas, aoColetar);
       checkpoints.atualizar(dt, jogador, particulas, aoAtivarCheckpoint);

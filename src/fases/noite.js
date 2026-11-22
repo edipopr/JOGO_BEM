@@ -21,7 +21,7 @@ export function criarFlorestaNoite(cena) {
   // ---------- A. Clareira Enluarada (início) ----------
   f.ilha(0, 0, 0, 24, 24, { grama: GRAMA, terra: TERRA });
   f.arvoresEm(-11, 11, -11, 11, 0, 12, (x, z) =>
-    Math.hypot(x, z) < 6 || (Math.abs(x) < 4 && z < 0) || Math.hypot(x + 9.5, z - 9.5) < 2, { escura: true });
+    Math.hypot(x, z) < 6 || (Math.abs(x) < 4 && z < 0) || (Math.abs(x) < 4.5 && z > 4) || Math.hypot(x + 9.5, z - 9.5) < 2, { escura: true });
   for (let i = 0; i < 10; i++) f.cogumeloBrilhante((f.sorte() - 0.5) * 20, (f.sorte() - 0.5) * 20, 0, corCogumelo());
   f.vagalumes(-11, 11, -11, 11, 0, 30);
 

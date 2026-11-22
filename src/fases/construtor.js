@@ -195,6 +195,123 @@ export class ConstrutorFase {
     this.enxames.push({ pontos, base });
   }
 
+  // ---------- Debaixo d'água ----------
+  /** Bolhas que sobem por toda a área (efeito de água). */
+  bolhas(minX, maxX, minZ, maxZ, minY, maxY, quantidade = 120, cor = 0xbfefff) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(quantidade * 3);
+    const base = [];
+    for (let i = 0; i < quantidade; i++) {
+      base.push({
+        x: minX + this.sorte() * (maxX - minX), z: minZ + this.sorte() * (maxZ - minZ),
+        y: this.sorte() * (maxY - minY), v: 0.6 + this.sorte() * 1.4, f: this.sorte() * 10,
+      });
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const pontos = new THREE.Points(geo, new THREE.PointsMaterial({ color: cor, size: 0.14, transparent: true, opacity: 0.6 }));
+    pontos.frustumCulled = false;
+    this.cena.add(pontos);
+    (this.subidas ||= []).push({ pontos, base, minY, altura: maxY - minY });
+  }
+
+  /** Coluna de bolhas que empurra o herói para cima, de yBase até yTopo. */
+  corrente(x, z, yBase, yTopo, raio = 2, forca = 6.5) {
+    (this.correntes ||= []).push({
+      caixa: new THREE.Box3(new THREE.Vector3(x - raio, yBase, z - raio), new THREE.Vector3(x + raio, yTopo, z + raio)), forca,
+    });
+    const tubo = new THREE.Mesh(
+      new THREE.CylinderGeometry(raio, raio * 0.8, yTopo - yBase, 12, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x8fe8ff, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }),
+    );
+    tubo.position.set(x, (yBase + yTopo) / 2, z);
+    this.cena.add(tubo);
+    this.bolhas(x - raio * 0.8, x + raio * 0.8, z - raio * 0.8, z + raio * 0.8, yBase, yTopo, 70, 0xffffff);
+    const ultima = this.subidas[this.subidas.length - 1];
+    for (const b of ultima.base) b.v *= 4;
+  }
+
+  /** Alga comprida que balança. */
+  alga(x, z, chao, alt = 3, cor = 0x1f8f5a) {
+    const g = new THREE.Group();
+    const n = Math.max(3, Math.round(alt / 1.1));
+    let pai = g;
+    const partes = [];
+    for (let i = 0; i < n; i++) {
+      const p = new THREE.Group();
+      p.position.y = i === 0 ? 0 : alt / n;
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.34 * (1 - i / n * 0.6), alt / n, 0.08), this.material(cor));
+      m.position.y = alt / n / 2;
+      p.add(m);
+      pai.add(p);
+      pai = p;
+      partes.push(p);
+    }
+    g.position.set(x, chao, z);
+    g.rotation.y = this.sorte() * 3;
+    this.cena.add(g);
+    (this.algas ||= []).push({ partes, f: this.sorte() * 10 });
+  }
+
+  /** Coral ramificado colorido. */
+  coral(x, z, chao, escala = 1, cor = null) {
+    const s = this.sorte;
+    const c = cor ?? [0xff6b7a, 0xff9d4d, 0xd66bff, 0x4de0c8][Math.floor(s() * 4)];
+    for (let i = 0; i < 5; i++) {
+      const alt = (0.5 + s() * 0.9) * escala;
+      const m = this.malha(new THREE.CylinderGeometry(0.07 * escala, 0.13 * escala, alt, 5), c, x + (s() - 0.5) * 0.6 * escala, chao + alt / 2, z + (s() - 0.5) * 0.6 * escala, false);
+      m.rotation.set((s() - 0.5) * 0.9, 0, (s() - 0.5) * 0.9);
+      this.malha(new THREE.IcosahedronGeometry(0.14 * escala, 0), c, m.position.x, chao + alt, m.position.z, false);
+    }
+  }
+
+  /** Pedra irregular (só decoração). */
+  pedra(x, z, chao, tamanho = 1, cor = 0x4a5a6a) {
+    const m = this.malha(new THREE.DodecahedronGeometry(tamanho, 0), cor, x, chao + tamanho * 0.4, z);
+    m.rotation.set(this.sorte() * 3, this.sorte() * 3, 0);
+    m.scale.y = 0.7;
+  }
+
+  /** Coluna de pedra (sólida); quebrada = mais baixa, com pedaço caído. */
+  coluna(x, z, chao, alt = 4, cor = 0x7a86a0) {
+    this.bloco(x, z, chao + 0.4, 1.5, 1.5, 0.4, cor);
+    this.malha(new THREE.CylinderGeometry(0.5, 0.58, alt, 8), cor, x, chao + alt / 2 + 0.3, z);
+    this.malha(new THREE.BoxGeometry(1.3, 0.35, 1.3), cor, x, chao + alt + 0.4, z);
+    this.caixas.push(new THREE.Box3(new THREE.Vector3(x - 0.5, chao, z - 0.5), new THREE.Vector3(x + 0.5, chao + alt, z + 0.5)));
+  }
+
+  /** Parede invisível (não deixa sair da arena). */
+  parede(x, z, yBase, yTopo, larg, prof) {
+    this.caixas.push(new THREE.Box3(new THREE.Vector3(x - larg / 2, yBase, z - prof / 2), new THREE.Vector3(x + larg / 2, yTopo, z + prof / 2)));
+  }
+
+  /**
+   * Silhueta do castelo do Rei do Pesadelo ao longe. Fica sempre a no máximo 80 m da câmera, encolhida na
+   * proporção (parece distante e vai crescendo) — assim a fase pode usar uma distância de visão curta.
+   */
+  casteloAoLonge(x, y, z, escala = 1, cor = 0x0a0618, corJanela = 0xff3bd0) {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshBasicMaterial({ color: cor, fog: false });
+    const matJanela = new THREE.MeshBasicMaterial({ color: corJanela, fog: false });
+    const bloco = (geo, px, py, pz, m = mat) => {
+      const b = new THREE.Mesh(geo, m);
+      b.position.set(px, py, pz);
+      g.add(b);
+    };
+    bloco(new THREE.BoxGeometry(34, 16, 6), 0, 8, 0);
+    for (const [px, alt, r] of [[-17, 26, 4], [17, 26, 4], [-8, 34, 3.4], [9, 31, 3.4], [0, 44, 4.5]]) {
+      bloco(new THREE.CylinderGeometry(r, r * 1.1, alt, 7), px, alt / 2, 0);
+      bloco(new THREE.ConeGeometry(r * 1.35, r * 3, 7), px, alt + r * 1.4, 0);
+      bloco(new THREE.BoxGeometry(1, 2, 0.4), px, alt * 0.8, r * 1.05, matJanela);
+      bloco(new THREE.BoxGeometry(0.8, 1.6, 0.4), px, alt * 0.55, r * 1.1, matJanela);
+    }
+    for (let i = -3; i <= 3; i++) bloco(new THREE.BoxGeometry(2.4, 2.5, 6), i * 4.6, 17, 0); // ameias
+    g.position.set(x, y, z);
+    g.scale.setScalar(escala);
+    this.cena.add(g);
+    this.janelasCastelo = matJanela;
+    this.castelo = { g, base: new THREE.Vector3(x, y, z), escala };
+  }
+
   // ---------- A cada quadro ----------
   /** Move as plataformas e carrega quem está em cima. foco = posição para a sombra seguir. */
   atualizar(dt, corpos, foco) {
@@ -218,6 +335,22 @@ export class ConstrutorFase {
       });
       pos.needsUpdate = true;
       pontos.material.opacity = 0.65 + Math.sin(this.tempo * 3) * 0.3;
+    }
+    for (const { pontos, base, minY, altura } of this.subidas || []) {
+      const pos = pontos.geometry.attributes.position;
+      base.forEach((b, i) => {
+        pos.setXYZ(i, b.x + Math.sin(this.tempo * 1.3 + b.f) * 0.3, minY + (b.y + this.tempo * b.v) % altura, b.z + Math.cos(this.tempo + b.f) * 0.3);
+      });
+      pos.needsUpdate = true;
+    }
+    for (const { partes, f } of this.algas || []) {
+      partes.forEach((p, i) => { p.rotation.z = Math.sin(this.tempo * 1.2 + f + i * 0.6) * 0.14; });
+    }
+    if (this.castelo && foco) {
+      const { g, base, escala } = this.castelo;
+      const k = Math.min(1, 80 / Math.max(1, foco.z - base.z));
+      g.position.lerpVectors(foco, base, k);
+      g.scale.setScalar(escala * k);
     }
     if (this.lanterna && foco) this.lanterna.position.set(foco.x, foco.y + 3, foco.z + 1);
     if (this.sol && foco) {
